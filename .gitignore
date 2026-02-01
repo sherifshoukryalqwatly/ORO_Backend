@@ -29,7 +29,6 @@ dist/
 build/
 
 # Uploads (local only)
-uploads/
 temp/
 
 # OS files
