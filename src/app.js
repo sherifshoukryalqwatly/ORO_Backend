@@ -4,7 +4,7 @@ import passport from 'passport';
 import cookieParser from "cookie-parser";
 import routes from './routes/index.js';
 import { requestLogger } from "./middlewares/logger.middleware.js";
-// import { swaggerSetup } from "./config/swagger.config.js";
+import { swaggerSetup } from "./config/swagger.js";
 import ApiError from './utils/ApiError.js';
 import "./config/google_passport.js";       
 const app = express();
@@ -26,6 +26,9 @@ app.use(cookieParser());
 // Passport
 app.use(passport.initialize());
  
+// Swagger Docs
+swaggerSetup(app);
+
 // Routes
 app.use("/api", routes);
 
