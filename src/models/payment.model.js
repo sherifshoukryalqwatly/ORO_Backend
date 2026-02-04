@@ -4,39 +4,37 @@ const { Schema, model } = mongoose;
 const paymentSchema = new Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, 'User Id is Required / الرقم المميز للمستخدم مطلوب']
+      required: true
     },
 
     order: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Order",
-      required: [true, 'Order Id is Required / الرقم المميز للطلب مطلوب']
+      required: true
     },
 
     paymentMethod: {
       type: String,
-      enum: {
-        values: ['COD'],
-        message: 'Invalid Payment Method / طريقة الدفع غير صالحة'
-      },
-      required: [true, 'Payment method is Required / طريقة الدفع مطلوبة']
+      enum: ['COD', 'STRIPE', 'PAYPAL'],
+      required: true
     },
 
     transactionId: {
       type: String,
-      required: [true, 'Transaction ID is Required / رقم المعاملة مطلوب']
+      default: null
     },
 
     amount: {
       type: Number,
-      required: [true, 'Payment amount is Required / مبلغ الدفع مطلوب'],
-      min: [0, 'Amount must be greater than 0 / يجب أن يكون المبلغ أكبر من صفر']
+      required: true,
+      min: 0
     },
 
     status: {
       type: String,
+      lowercase: true,
       enum: ['pending', 'completed', 'failed', 'refunded'],
       default: 'pending'
     },
@@ -51,6 +49,39 @@ const paymentSchema = new Schema(
   },
   { timestamps: true }
 );
+
+/* ----------------------------- Indexes ----------------------------- */
+paymentSchema.index({ user: 1 });
+paymentSchema.index({ order: 1 });
+paymentSchema.index({ status: 1 });
+paymentSchema.index({ createdAt: -1 });
+paymentSchema.index({ isDeleted: 1 });
+
+/* ----------------------------- Soft Delete ----------------------------- */
+paymentSchema.pre('save', function (next) {
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
+});
+
+/* ----------------------------- Payment Rules ----------------------------- */
+paymentSchema.pre('save', function (next) {
+  if (this.paymentMethod === 'COD') {
+    this.transactionId = null;
+  }
+
+  if (['STRIPE', 'PAYPAL'].includes(this.paymentMethod) && !this.transactionId) {
+    return next(new Error('Transaction ID is required for online payments'));
+  }
+
+  next();
+});
 
 const Payment = model("Payment", paymentSchema);
 export default Payment;

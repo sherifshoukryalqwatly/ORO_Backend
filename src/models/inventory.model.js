@@ -1,16 +1,10 @@
-/* --------------------------------------------------------------------------
- * 📦 Inventory Model
- * - Tracks stock levels of products and their variants
- * - Supports multiple variants per product (size, color)
- * - Supports soft delete
- * -------------------------------------------------------------------------- */
 import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const inventorySchema = new Schema(
   {
     product: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Product",
       required: [true, 'Product Id is required / الرقم المميز للمنتج مطلوب']
     },
@@ -26,6 +20,19 @@ const inventorySchema = new Schema(
   },
   { timestamps: true }
 );
+
+// 🔹 Soft delete consistency
+inventorySchema.pre('save', function (next) {
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
+});
 
 const Inventory = model("Inventory", inventorySchema);
 export default Inventory;

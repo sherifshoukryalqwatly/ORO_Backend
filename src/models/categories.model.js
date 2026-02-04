@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 /* ----------------------------- Localization Schema ----------------------------- */
@@ -26,26 +26,26 @@ function createLocalizedStringSchema(min = 2, max = 500, required = true) {
 
 const CategorySchema = new Schema(
   {
-    name: createLocalizedStringSchema(2,50),
+    name: createLocalizedStringSchema(2, 50),
 
     slug: {
-      en: { type: String, unique: true },
-      ar: { type: String, unique: true }
+      en: { type: String },
+      ar: { type: String }
     },
 
     image: {
-        public_id: {
-            type: String,
-            required: true,
-        },
-        secure_url: {
-            type: String,
-            required: true,
-        },
+      public_id: {
+        type: String,
+        required: true,
+      },
+      secure_url: {
+        type: String,
+        required: true,
+      },
     },
 
     parent: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Category",
       default: null
     },
@@ -58,15 +58,42 @@ const CategorySchema = new Schema(
   { timestamps: true }
 );
 
-// Auto-generate slug based on name
-CategorySchema.pre("save", async function () {
-  if (this.name?.en) {
-    this.slug.en = this.name.en.toLowerCase().replace(/ /g, "-");
+// 🔹 Slug generation (ONLY when name changes)
+CategorySchema.pre("save", function (next) {
+  if (this.isModified("name.en") && this.name?.en) {
+    this.slug.en = this.name.en
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-");
   }
-  if (this.name?.ar) {
-    this.slug.ar = this.name.ar.replace(/ /g, "-");
+
+  if (this.isModified("name.ar") && this.name?.ar) {
+    this.slug.ar = this.name.ar
+      .trim()
+      .replace(/\s+/g, "-");
   }
+
+  next();
 });
+
+// 🔹 Soft delete consistency
+CategorySchema.pre("save", function (next) {
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
+});
+
+// 🔹 Indexes
+CategorySchema.index({ "slug.en": 1 }, { unique: true, sparse: true });
+CategorySchema.index({ "slug.ar": 1 }, { unique: true, sparse: true });
+CategorySchema.index({ parent: 1 });
+CategorySchema.index({ isActive: 1, isDeleted: 1 });
 
 const Category = model("Category", CategorySchema);
 export default Category;

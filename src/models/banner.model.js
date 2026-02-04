@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 /* ----------------------------- Localization Schema ----------------------------- */
@@ -27,27 +27,35 @@ function createLocalizedStringSchema(min = 2, max = 500, required = true) {
 const bannerSchema = new Schema(
   {
     title: {
-      type: createLocalizedStringSchema(2,100),
-      required: [true, 'Banner title is required / عنوان البانر مطلوب']
+      type: createLocalizedStringSchema(2, 100),
+      required: true
     },
 
     subtitle: {
-      type: createLocalizedStringSchema(2,200),
+      type: createLocalizedStringSchema(2, 200, false),
       default: { en: '', ar: '' }
     },
 
     image: {
-      type: String,
-      required: [true, 'Banner image URL is required / رابط صورة البانر مطلوب']
+      public_id: {
+        type: String,
+        required: [true, 'Cloudinary public_id is required']
+      },
+      secure_url: {
+        type: String,
+        required: [true, 'Cloudinary secure_url is required']
+      }
     },
 
     link: {
       type: String,
-      default: null // optional: redirect link when clicked
+      trim: true,
+      default: null
     },
 
     displayOrder: {
       type: Number,
+      min: 0,
       default: 0
     },
 
@@ -61,10 +69,27 @@ const bannerSchema = new Schema(
       default: false
     },
 
-    deletedAt: { type: Date }
+    deletedAt: Date
   },
   { timestamps: true }
 );
+
+
+// Index for homepage queries
+bannerSchema.index({ isActive: 1, isDeleted: 1, displayOrder: 1 });
+
+// Soft delete consistency
+bannerSchema.pre('save', function (next) {
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
+});
 
 const Banner = model("Banner", bannerSchema);
 export default Banner;

@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 /* ----------------------------- Localization Schema ----------------------------- */
@@ -27,30 +27,32 @@ function createLocalizedStringSchema(min = 2, max = 500, required = true) {
 const notificationSchema = new Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: [true, 'User Id is required / الرقم المميز للمستخدم مطلوب']
     },
 
     type: {
       type: String,
+      uppercase: true,
       enum: ['INFO', 'PROMOTION', 'ORDER', 'REFUND', 'SYSTEM'],
       required: [true, 'Notification type is required / نوع الإشعار مطلوب']
     },
 
     title: {
-      type: createLocalizedStringSchema(2,100),
-      required: [true, 'Notification title is required / عنوان الإشعار مطلوب']
+      type: createLocalizedStringSchema(2, 100),
+      required: true
     },
 
     message: {
-      type: createLocalizedStringSchema(2,300),
-      required: [true, 'Notification message is required / نص الإشعار مطلوب']
+      type: createLocalizedStringSchema(2, 300),
+      required: true
     },
 
     link: {
       type: String,
-      default: null // optional link to redirect
+      trim: true,
+      default: null
     },
 
     isRead: {
@@ -67,6 +69,24 @@ const notificationSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// 🔹 Indexes for fast reads
+notificationSchema.index({ user: 1, isRead: 1 });
+notificationSchema.index({ user: 1, createdAt: -1 });
+notificationSchema.index({ isDeleted: 1 });
+
+// 🔹 Soft delete consistency
+notificationSchema.pre('save', function (next) {
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
+});
 
 const Notification = model("Notification", notificationSchema);
 export default Notification;

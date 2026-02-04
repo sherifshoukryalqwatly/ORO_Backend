@@ -1,109 +1,96 @@
 import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
+/* ----------------------------- Order Item ----------------------------- */
 const orderItemSchema = new Schema(
   {
     product: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Product",
-      required: [true, 'Product Id is Required / الرقم المميز للمنتج مطلوب']
+      required: true
     },
 
     quantity: {
       type: Number,
-      required: [true, 'Quantity is Required / الكمية مطلوبة'],
-      min: [1, 'Quantity must be at least 1 / يجب أن تكون الكمية 1 على الأقل']
+      required: true,
+      min: 1
     },
 
     priceAtTime: {
       type: Number,
-      required: [true, 'Product price is Required / سعر المنتج مطلوب']
+      required: true
     },
 
     totalItemPrice: {
       type: Number,
-      required: [true, 'Total item price is Required / السعر الإجمالي مطلوب']
+      required: true
     }
   },
   { _id: false }
 );
 
+/* ----------------------------- Address Snapshot ----------------------------- */
 const addressSchema = new Schema(
   {
-    fullName: {
-      type: String,
-      required: [true, 'Full name is Required / الاسم الكامل مطلوب']
-    },
-
-    phone: {
-      type: String,
-      required: [true, 'Phone number is Required / رقم الهاتف مطلوب']
-    },
-
-    city: {
-      type: String,
-      required: [true, 'City is Required / المدينة مطلوبة']
-    },
-
-    street: {
-      type: String,
-      required: [true, 'Street is Required / الشارع مطلوب']
-    },
-
-    building: {
-      type: String,
-      required: [true, 'Building is Required / المبنى مطلوب']
-    },
-
-    notes: { type: String }
+    fullName: { type: String, required: true },
+    phone: { type: String, required: true },
+    city: { type: String, required: true },
+    street: { type: String, required: true },
+    building: { type: String, required: true },
+    notes: String
   },
   { _id: false }
 );
 
+/* ----------------------------- Order ----------------------------- */
 const orderSchema = new Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, 'User Id is Required / الرقم المميز للمستخدم مطلوب']
+      required: true
     },
 
     items: {
       type: [orderItemSchema],
-      required: [true, 'Order items are Required / عناصر الطلب مطلوبة']
+      validate: [
+        v => v.length > 0,
+        'Order must contain at least one item'
+      ]
     },
 
     shippingAddress: {
       type: addressSchema,
-      required: [true, 'Shipping Address is Required / عنوان الشحن مطلوب']
+      required: true
     },
 
     paymentMethod: {
       type: String,
-      enum: {
-        values: ['COD'],
-        message: 'Invalid Payment Method / طريقة الدفع غير صالحة'
-      },
-      required: [true, 'Payment method is Required / طريقة الدفع مطلوبة']
+      enum: ['COD', 'STRIPE', 'PAYPAL'],
+      required: true
     },
 
     paymentStatus: {
       type: String,
+      lowercase: true,
       enum: ['pending', 'paid', 'failed', 'refunded'],
       default: 'pending'
     },
 
     orderStatus: {
       type: String,
-      enum: {
-        values: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
-        message: 'Invalid Order Status / حالة الطلب غير صالحة'
-      },
+      lowercase: true,
+      enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
       default: 'pending'
     },
 
+    paymentIntentId: {
+      type: String,
+      default: null
+    },
+
     coupon: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Coupon',
       default: null
     },
@@ -115,17 +102,17 @@ const orderSchema = new Schema(
 
     subtotalPrice: {
       type: Number,
-      required: [true, 'Subtotal price is Required / السعر قبل الخصم مطلوب']
+      required: true
     },
 
     shippingFee: {
       type: Number,
-      required: [true, 'Shipping fee is Required / تكلفة الشحن مطلوبة']
+      required: true
     },
 
     finalPrice: {
       type: Number,
-      required: [true, 'Final price is Required / السعر النهائي مطلوب']
+      required: true
     },
 
     isDeleted: { type: Boolean, default: false },
@@ -138,9 +125,28 @@ const orderSchema = new Schema(
   }
 );
 
-// ⭐ Virtual: total quantity
-OrderSchema.virtual('totalQuantity').get(function () {
+/* ----------------------------- Virtuals ----------------------------- */
+orderSchema.virtual('totalQuantity').get(function () {
   return this.items.reduce((sum, item) => sum + item.quantity, 0);
+});
+
+/* ----------------------------- Indexes ----------------------------- */
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ orderStatus: 1 });
+orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ isDeleted: 1 });
+
+/* ----------------------------- Soft Delete ----------------------------- */
+orderSchema.pre('save', function (next) {
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
 });
 
 const Order = model("Order", orderSchema);

@@ -1,12 +1,17 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const cartItemSchema = new Schema(
   {
     product: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Product",
       required: [true, 'Product Id is Required / الرقم المميز للمنتج مطلوب']
+    },
+
+    productNameAtAddition: {
+      type: String,
+      trim: true
     },
 
     quantity: {
@@ -17,12 +22,12 @@ const cartItemSchema = new Schema(
 
     priceAtAddition: {
       type: Number,
-      required: [true, 'Price at addition is Required / سعر الإضافة مطلوب']
+      required: [true, 'Price at addition is Required / سعر الإضافة مطلوب'],
+      min: [0, 'Price must be positive']
     },
 
     totalItemPrice: {
-      type: Number,
-      required: [true, 'Total item price is Required / السعر الإجمالي مطلوب']
+      type: Number
     }
   },
   { _id: false }
@@ -31,7 +36,7 @@ const cartItemSchema = new Schema(
 const cartSchema = new Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       unique: true,
       required: [true, 'User Id is Required / الرقم المميز للمستخدم مطلوب']
@@ -52,13 +57,37 @@ const cartSchema = new Schema(
   }
 );
 
-// ⭐ Virtual total price
-CartSchema.virtual('totalPrice').get(function () {
+// Index
+cartSchema.index({ user: 1 });
+
+// 🔹 Virtuals
+cartSchema.virtual('totalPrice').get(function () {
   return this.items.reduce((sum, item) => sum + item.totalItemPrice, 0);
 });
-// ⭐ Virtual total price
-CartSchema.virtual('itemCount').get(function () {
+
+cartSchema.virtual('itemCount').get(function () {
   return this.items.reduce((sum, item) => sum + item.quantity, 0);
+});
+
+// 🔹 Calculate totals
+cartSchema.pre('save', function (next) {
+  this.items.forEach(item => {
+    item.totalItemPrice = item.quantity * item.priceAtAddition;
+  });
+  next();
+});
+
+// 🔹 Soft delete consistency
+cartSchema.pre('save', function (next) {
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
 });
 
 const Cart = model("Cart", cartSchema);

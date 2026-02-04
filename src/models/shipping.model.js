@@ -12,7 +12,8 @@ const shippingSchema = new Schema(
     order: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
-      required: [true, 'Order Id is required / الرقم المميز للطلب مطلوب']
+      required: [true, 'Order Id is required / الرقم المميز للطلب مطلوب'],
+      unique: [true, 'Shipping already exists for this order / الشحن لهذا الطلب موجود بالفعل']
     },
 
     carrier: {
@@ -27,7 +28,10 @@ const shippingSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["pending", "shipped", "in_transit", "delivered", "cancelled"],
+      enum: {
+        values: ["pending", "shipped", "in_transit", "delivered", "cancelled"],
+        message: 'Invalid shipping status / حالة الشحن غير صالحة'
+      },
       default: "pending"
     },
 
@@ -40,6 +44,21 @@ const shippingSchema = new Schema(
   },
   { timestamps: true }
 );
+
+/* ----------------------------- Indexes ----------------------------- */
+shippingSchema.index({ trackingNumber: 1 });
+shippingSchema.index({ order: 1 });
+
+/* ----------------------------- Soft Delete ----------------------------- */
+shippingSchema.pre("save", function (next) {
+  if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
+  if (!this.isDeleted) this.deletedAt = null;
+  next();
+});
+
+shippingSchema.pre(/^find/, function () {
+  this.where({ isDeleted: false });
+});
 
 const Shipping = model("Shipping", shippingSchema);
 export default Shipping;

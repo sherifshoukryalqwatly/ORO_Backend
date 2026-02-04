@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const couponSchema = new Schema(
@@ -6,6 +6,8 @@ const couponSchema = new Schema(
     code: {
       type: String,
       required: [true, 'Coupon Code is Required / كود الكوبون مطلوب'],
+      trim: true,
+      uppercase: true,
       unique: true
     },
 
@@ -26,12 +28,12 @@ const couponSchema = new Schema(
 
     maxDiscountAmount: {
       type: Number,
-      default: null // Optional: cap for percentage coupons
+      default: null
     },
 
     minCartValue: {
       type: Number,
-      default: 0 // Minimum cart total required to apply coupon
+      default: 0
     },
 
     expiresAt: {
@@ -41,12 +43,12 @@ const couponSchema = new Schema(
 
     usageLimit: {
       type: Number,
-      default: null  // Global usage limit
+      default: null
     },
 
     usedCount: {
       type: Number,
-      default: 0 // Tracks total times used
+      default: 0
     },
 
     usageLimitPerUser: {
@@ -68,6 +70,41 @@ const couponSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// 🔹 Indexes
+couponSchema.index({ code: 1 }, { unique: true });
+couponSchema.index({ active: 1, isDeleted: 1 });
+couponSchema.index({ expiresAt: 1 });
+
+// 🔹 Normalize & validate coupon
+couponSchema.pre('save', function (next) {
+  if (this.isModified('code')) {
+    this.code = this.code.trim().toUpperCase();
+  }
+
+  if (
+    this.discountType === 'percentage' &&
+    this.discountValue > 100
+  ) {
+    return next(
+      new Error('Percentage discount cannot exceed 100%')
+    );
+  }
+
+  if (this.expiresAt && this.expiresAt < new Date()) {
+    this.active = false;
+  }
+
+  if (this.isDeleted && !this.deletedAt) {
+    this.deletedAt = new Date();
+  }
+
+  if (!this.isDeleted) {
+    this.deletedAt = null;
+  }
+
+  next();
+});
 
 const Coupon = model("Coupon", couponSchema);
 export default Coupon;
