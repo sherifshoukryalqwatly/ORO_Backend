@@ -108,6 +108,12 @@ const userSchema = new Schema(
     isVerified: { type: Boolean, default: false },
 
     addresses: [{ type: Schema.Types.ObjectId, ref: "Address" }],
+    refreshTokens: [
+      {
+        token: { type: String },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
 
     otpCode: Number,
     otpExpiresAt: Date,

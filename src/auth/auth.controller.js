@@ -1,14 +1,14 @@
 import asyncWrapper from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import bcrypt from 'bcryptjs';
-import {generateToken} from '../utils/jwt.js';
+import {generateRefreshToken, generateToken, hashRefreshToken} from '../utils/jwt.js';
 import { StatusCodes } from '../utils/constants.js';
 import { appResponses } from '../utils/ApiResponse.js';
-// import * as userRepo from '../repo/Users/user.repo.js';
+import * as userRepo from '../repos/user.repo.js';
 import { mailVerification , mailVerification2, sendResetPasswordEmail } from '../utils/email.js';
 import { generateOTP } from '../utils/generateOTP.js';
 import crypto from 'crypto'
-// import { auditLogService } from '../services/System/auditlog.service.js';
+import { auditLogService } from '../services/auditlog.service.js';
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -20,6 +20,51 @@ const setAuthCookie = (res,token)=>{
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     })
 }
+
+const setRefreshCookie = (res, refreshToken) => {
+  res.cookie("refresh_token", refreshToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
+export const refreshToken = asyncWrapper(async (req, res) => {
+  const refreshToken = req.cookies.refresh_token;
+  if (!refreshToken) {
+    throw ApiError.unauthorized(res, "Unauthorized");
+  }
+
+  const hashed = hashRefreshToken(refreshToken);
+
+  const user = await userRepo.findByRefreshToken(hashed);
+  if (!user) {
+    throw ApiError.forbidden(res, "Forbidden");
+  }
+
+  /* 🔄 rotate refresh token */
+  user.refreshTokens = user.refreshTokens.filter(
+    (rt) => rt.token !== hashed
+  );
+
+  const newRefresh = generateRefreshToken();
+  user.refreshTokens.push({
+    token: hashRefreshToken(newRefresh),
+  });
+
+  await user.save();
+
+  const newAccessToken = generateToken(
+    { id: user._id, role: user.role },
+    { expiresIn: "15m" }
+  );
+
+  setAuthCookie(res, newAccessToken);
+  setRefreshCookie(res, newRefresh);
+
+  return res.status(StatusCodes.OK).json({ success: true });
+});
 
 // Helper for audit logs
 const logAction = async ({ req, user, action, targetModel, targetId, description }) => {
@@ -59,6 +104,13 @@ export const signIn = asyncWrapper(async (req,res,next)=>{
         { expiresIn: '1d' }
     );
 
+    /* 🔁 REFRESH TOKEN */
+    const refreshToken = generateRefreshToken();
+    const hashedRefresh = hashRefreshToken(refreshToken);
+
+    existUser.refreshTokens.push({ token: hashedRefresh });
+    await existUser.save();
+
     const {password:_,...safeUser} = existUser.toObject();
 
     // Audit log
@@ -71,9 +123,10 @@ export const signIn = asyncWrapper(async (req,res,next)=>{
       description: `User ${existUser.email} signed in`
     });
 
-    return setAuthCookie(res,token)
-            .status(StatusCodes.OK)
-            .json({data:safeUser,token});
+    setAuthCookie(res, accessToken);
+    setRefreshCookie(res, refreshToken);
+
+    return appResponses.success(res,safeUser,"User Loggedin Successfully / تم تسجيل الدخول بنجاح",StatusCodes.OK)
 })
 
 export const signUp =asyncWrapper(async (req,res,next)=>{
@@ -100,7 +153,7 @@ export const signUp =asyncWrapper(async (req,res,next)=>{
     }
     // 1️⃣ Generate OTP
     const otp = generateOTP(); // ex: 6-digit code
-    const otpExpiry = Date.now() + 10 * 60 * 1000; // valid for 10 minutes
+    const otpExpiry = Date.now() + 2 * 60 * 1000; // valid for 2 minutes
 
     // 2️⃣ Create user with isVerify=false
     const newUser = await userRepo.create({
@@ -109,7 +162,7 @@ export const signUp =asyncWrapper(async (req,res,next)=>{
         otpExpiry,
     });
 
-    // await mailVerification(email,otp)
+    await mailVerification(email,otp)
     // await mailVerification2(email,otp)
 
     // Audit log
@@ -185,7 +238,7 @@ export const resendOtp = asyncWrapper(async (req, res, next) => {
 
   // Generate new OTP
   const otp = generateOTP();
-  const otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+  const otpExpiry = Date.now() + 2 * 60 * 1000; // 2 minutes
 
   // Update user
   await userRepo.update(user._id,{otp,otpExpiry})
@@ -282,14 +335,30 @@ export const me = asyncWrapper(async (req, res, next) => {
 });
 
 export const signOut =asyncWrapper(async (req,res,next)=>{  
+  const refreshToken = req.cookies.refresh_token;
 
-    res.clearCookie("access_token", {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
-    });
-    
-    return appResponses.success(res, {}, "Successfully logged out / تسجيل الخروج تم بنجاح");
+  if (refreshToken) {
+    const hashed = hashRefreshToken(refreshToken);
+    await userRepo.removeRefreshToken(hashed);
+  }
+
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+  });
+
+  res.clearCookie("refresh_token", {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+  });
+
+  return appResponses.success(
+    res,
+    {},
+    "Successfully logged out / تسجيل الخروج تم بنجاح"
+  );
 })
 
 export const googleCallback = async (req, res, next) => {

@@ -9,10 +9,11 @@ import {
   resendOtp,
   requestResetPassword,
   resetPassword,
-  me
+  me,
+  refreshToken
   } from "./auth.controller.js";
 import validationMiddleware from "../middlewares/validation.middleware.js";
-// import { createUserSchema } from "../validations/Users/user.validation.js";
+import { createUserSchema } from "../validations/user.validation.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -20,7 +21,8 @@ const router = express.Router();
 // User routes
 router.get("/me",isAuthenticated,me);
 router.post("/login", signIn);
-router.post("/register", validationMiddleware(), signUp);
+router.post("/refresh", refreshToken);
+router.post("/register", validationMiddleware(createUserSchema), signUp);
 router.post("/logout", signOut);
 router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
