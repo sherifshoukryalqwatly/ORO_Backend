@@ -49,8 +49,8 @@ export const isAuthenticated = asyncWrapper(async (req, res, next) => {
 });
 
 export const authorizeRole = (...roles) => {
-    return (req, res, next) => {        
-        if (!req.user || !roles.includes(req.user.role.toUpperCase())) {
+    return (req, res, next) => {  
+        if (!req.user || !roles.includes(req.user.role.toLowerCase())) {
             return appResponses.forbidden(
                 res,
                 "Not have permissions / لا تمتلك الصلاحيات"

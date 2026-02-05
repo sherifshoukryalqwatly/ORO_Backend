@@ -1,7 +1,7 @@
 import * as userService from '../services/user.service.js';
 import asyncWrapper from '../utils/asyncHandler.js';
 import { appResponses } from '../utils/ApiResponse.js';
-// import { auditLogService } from '../services/auditlog.service.js';
+import { auditLogService } from '../services/auditlog.service.js';
 
 // Helper function to log actions
 const logAction = async ({ req, action, targetModel, targetId, description }) => {
@@ -115,6 +115,21 @@ export const remove = asyncWrapper(async (req, res) => {
         targetModel: 'User',
         targetId: req.params.id,
         description: 'Soft deleted user'
+    });
+
+    return appResponses.success(res, null, 'User Deleted Successfully / تم حذف المستخدم بنجاح');
+});
+
+// SOFT DELETE Me
+export const removeMe = asyncWrapper(async (req, res) => {
+    await userService.remove(req.user._id);
+
+    await logAction({
+        req,
+        action: 'DELETE',
+        targetModel: 'User',
+        targetId: req.user._id,
+        description: 'Soft itself deleted user'
     });
 
     return appResponses.success(res, null, 'User Deleted Successfully / تم حذف المستخدم بنجاح');

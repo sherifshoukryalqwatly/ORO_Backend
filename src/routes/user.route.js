@@ -11,11 +11,12 @@ router.route('/by_email/:email')
     .get(authorizeRole('admin'), userController.findByEmail)
 
 router.route('/me')
-    .get(userController.getMe);
+    .get(userController.getMe)
+    .delete(userController.removeMe);
 
 router.route('/:id')
     .patch(validationMiddleware(updateUserSchema), userController.update)
-    .delete(userController.remove)
+    .delete(authorizeRole('admin'),userController.remove)
     .get(authorizeRole('admin'),userController.findById);
 
 router.route('/')

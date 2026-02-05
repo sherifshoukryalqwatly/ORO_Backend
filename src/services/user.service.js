@@ -96,7 +96,7 @@ export const hRemove = async (id)=>{
 export const remove = async (id)=>{
     const user = await userRepo.findById(id);
     if(!user) throw ApiError.notFound('User not Found / المستخدم غير موجود');
-    await userRepo.remove(id,adminId);
+    await userRepo.remove(id);
     return {message: "User Deleted Successfully / تم حذف المستخدم بنجاح"}
 }
 //hard delete all

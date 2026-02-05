@@ -2,7 +2,7 @@ import User from '../models/user.model.js';
 
 //CREATE
 export const create = async (data)=> {
-    const user = new User(data);
+    const user = new User({isVerified:true,...data});
     return await user.save();
 }
 //Find
@@ -65,6 +65,20 @@ export const removeRefreshToken = async (hashedToken) => {
     {
       $pull: {
         refreshTokens: { token: hashedToken }
+      }
+    }
+  );
+};
+
+export const addRefreshToken = async (userId, hashedToken) => {
+  return await User.updateOne(
+    { _id: userId, softDeleted: false },
+    {
+      $push: {
+        refreshTokens: {
+          token: hashedToken,
+          createdAt: new Date()
+        }
       }
     }
   );

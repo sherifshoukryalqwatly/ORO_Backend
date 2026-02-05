@@ -74,7 +74,7 @@ export const baseValidationRules = {
         'Password must contain uppercase, lowercase, number, and special character',
       'any.required': 'Admin Password is required',
     }),
-  phonenumber: Joi.string()
+  phoneNumber: Joi.string()
     .pattern(/^\+?[0-9]\d{11,11}$/)
     .message({
             'string.pattern.base': 'Please provide a valid phone number /يرجى تقديم رقم هاتف صالح',
@@ -125,7 +125,7 @@ export const createUserSchema = Joi.object({
   email: baseValidationRules.email.required(),
   password: baseValidationRules.password.required(),
   confirmPassword: baseValidationRules.confirmPassword.required(),
-//   phonenumber: baseValidationRules.phonenumber.required(),
+//   phoneNumber: baseValidationRules.phoneNumber.required(),
   role: baseValidationRules.role.default('user'),
   isVerify: baseValidationRules.isVerify.default(false),
   googleId: baseValidationRules.googleId,
@@ -142,7 +142,7 @@ export const updateUserSchema = Joi.object({
     lastName: baseValidationRules.lastName.optional(),
     email: baseValidationRules.email.optional(),
     password: baseValidationRules.password.optional(),
-    phonenumber: baseValidationRules.phonenumber.optional(),
+    phonenumber: baseValidationRules.phoneNumber.optional(),
     role: baseValidationRules.role.optional(),
     isDeleted: baseValidationRules.isDeleted.optional(),
     deletedAt: baseValidationRules.deletedAt.optional(),

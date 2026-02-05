@@ -89,10 +89,10 @@ export const signIn = asyncWrapper(async (req,res,next)=>{
         throw ApiError.notFound('Invalid Email Or Password / البريد الالكترونى او الرقم السرى خطأ')
     }
 
-    const isMatch = bcrypt.compare(password,existUser.password);
-
+    const isMatch = await bcrypt.compare(password,existUser.password);
+    
     if(!isMatch){
-        throw ApiError.unauthorized(res,'Invalid Email Or Password / البريد الالكترونى او الرقم السرى خطأ')
+        throw ApiError.unauthorized('Invalid Email Or Password / البريد الالكترونى او الرقم السرى خطأ')
     }
 
     const token = generateToken({
@@ -108,8 +108,7 @@ export const signIn = asyncWrapper(async (req,res,next)=>{
     const refreshToken = generateRefreshToken();
     const hashedRefresh = hashRefreshToken(refreshToken);
 
-    existUser.refreshTokens.push({ token: hashedRefresh });
-    await existUser.save();
+    await userRepo.addRefreshToken(existUser._id, hashedRefresh);
 
     const {password:_,...safeUser} = existUser.toObject();
 
@@ -123,7 +122,7 @@ export const signIn = asyncWrapper(async (req,res,next)=>{
       description: `User ${existUser.email} signed in`
     });
 
-    setAuthCookie(res, accessToken);
+    setAuthCookie(res, token);
     setRefreshCookie(res, refreshToken);
 
     return appResponses.success(res,safeUser,"User Loggedin Successfully / تم تسجيل الدخول بنجاح",StatusCodes.OK)
@@ -158,8 +157,8 @@ export const signUp =asyncWrapper(async (req,res,next)=>{
     // 2️⃣ Create user with isVerify=false
     const newUser = await userRepo.create({
         ...req.body,
-        otp,
-        otpExpiry,
+        otpCode:otp,
+        otpExpiresAt:otpExpiry,
     });
 
     await mailVerification(email,otp)
@@ -191,20 +190,20 @@ export const verifyOtp = asyncWrapper(async (req, res, next) => {
     throw ApiError.notFound("User not found / المستخدم غير موجود");
   }
 
-  if (user.isVerify) {
+  if (user.isVerified) {
     return appResponses.success(res, null, "User already verified / المستخدم مُفعل مسبقاً");
   }
 
-  if (user.otp.toString() !== otp) {
+  if (user.otpCode.toString() !== otp) {
     throw ApiError.badRequest("Invalid OTP / الرمز غير صحيح");
   }
 
-  if (user.otpExpiry < Date.now()) {
+  if (user.otpExpiresAt < Date.now()) {
     throw ApiError.badRequest("OTP expired / انتهت صلاحية الرمز");
   }
 
   // Mark user as verified
-  await userRepo.update(user._id,{isVerify:true,otp:null,otpExpiry:null});
+  await userRepo.update(user._id,{isVerified:true,otpCode:null,otpExpiresAt:null});
 
   // Audit log
   await logAction({
@@ -232,19 +231,19 @@ export const resendOtp = asyncWrapper(async (req, res, next) => {
     throw ApiError.notFound("User not found / المستخدم غير موجود");
   }
 
-  if (user.isVerify) {
+  if (user.isVerified) {
     return appResponses.success(res, null, "User already verified / المستخدم مُفعل مسبقاً");
   }
 
   // Generate new OTP
-  const otp = generateOTP();
-  const otpExpiry = Date.now() + 2 * 60 * 1000; // 2 minutes
+  const otpCode = generateOTP();
+  const otpExpiresAt = Date.now() + 2 * 60 * 1000; // 2 minutes
 
   // Update user
-  await userRepo.update(user._id,{otp,otpExpiry})
+  await userRepo.update(user._id,{otpCode,otpExpiresAt})
 
   // Send OTP email
-  await mailVerification(email, otp);
+  await mailVerification(email,otpCode);
 
   // Audit log
   await logAction({
@@ -262,10 +261,10 @@ export const resendOtp = asyncWrapper(async (req, res, next) => {
 export const  requestResetPassword  = asyncWrapper(async (req,res,next)=>{
     const { email } = req.body;
 
-    if (!email) throw AppErrors.badRequest("Email is required / البريد الإلكتروني مطلوب");
+    if (!email) throw ApiError.badRequest("Email is required / البريد الإلكتروني مطلوب");
 
     const user = await userRepo.findByEmail(email.toLowerCase());
-    if (!user) throw AppErrors.notFound("User not found / المستخدم غير موجود");
+    if (!user) throw ApiError.notFound("User not found / المستخدم غير موجود");
 
     // Generate secure token
     const resetToken = crypto.randomBytes(20).toString("hex");

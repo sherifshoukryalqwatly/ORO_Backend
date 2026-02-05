@@ -159,27 +159,21 @@ function safeDecryptRSA(value) {
 }
 
 /* ----------------------------- Pre Save ----------------------------- */
-userSchema.pre("save", async function (next) {
-  try {
-    // 🔐 hash password
-    if (this.isModified("password") && this.password) {
-      const salt = await bcrypt.genSalt(10);
-      this.password = await bcrypt.hash(this.password, salt);
-    }
-
-    // 🔒 encrypt phone
-    if (this.isModified("phoneNumber") && this.phoneNumber) {
-      this.phoneNumber = encryptRSA(this.phoneNumber);
-    }
-
-    // 🗑 soft delete timestamp
-    if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
-    if (!this.isDeleted) this.deletedAt = null;
-
-    next();
-  } catch (err) {
-    next(err);
+userSchema.pre("save", async function () {
+  // 🔐 hash password
+  if (this.isModified("password") && this.password) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
   }
+
+  // 🔒 encrypt phone
+  if (this.isModified("phoneNumber") && this.phoneNumber) {
+    this.phoneNumber = encryptRSA(this.phoneNumber);
+  }
+
+  // 🗑 soft delete timestamp
+  if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
+  if (!this.isDeleted) this.deletedAt = null;
 });
 
 /* ----------------------------- Soft Delete ----------------------------- */

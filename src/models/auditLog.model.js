@@ -53,11 +53,10 @@ auditLogSchema.index({ targetModel: 1, targetId: 1 });
 auditLogSchema.index({ createdAt: -1 });
 
 // Prevent updates (immutability)
-auditLogSchema.pre('save', function (next) {
+auditLogSchema.pre("save", function () {
   if (!this.isNew) {
-    return next(new Error('Audit logs cannot be modified'));
+    throw new Error("Audit logs cannot be modified");
   }
-  next();
 });
 
 const AuditLog = model("AuditLog", auditLogSchema);
