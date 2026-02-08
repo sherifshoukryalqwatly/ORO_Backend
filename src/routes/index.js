@@ -5,6 +5,7 @@ import authRoutes from "../auth/auth.route.js";
 import userRoutes from "./user.route.js";
 import addressRoutes from "./address.route.js";
 import bannerRoutes from "./banner.route.js";
+import cartRoutes from "./cart.route.js";
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/addresses", addressRoutes);
 router.use("/banners", bannerRoutes);
+router.use("/carts", cartRoutes);
 
 /* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {
