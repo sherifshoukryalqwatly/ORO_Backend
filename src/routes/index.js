@@ -7,6 +7,7 @@ import addressRoutes from "./address.route.js";
 import bannerRoutes from "./banner.route.js";
 import cartRoutes from "./cart.route.js";
 import categoriesRoutes from "./categories.route.js";
+import couponRoutes from "./coupon.route.js";
 
 const router = express.Router();
 
@@ -18,6 +19,7 @@ router.use("/addresses", addressRoutes);
 router.use("/banners", bannerRoutes);
 router.use("/carts", cartRoutes);
 router.use("/categories", categoriesRoutes);
+router.use("/coupons", couponRoutes);
 
 /* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {
