@@ -10,6 +10,7 @@ import categoriesRoutes from "./categories.route.js";
 import couponRoutes from "./coupon.route.js";
 import favouritesRoutes from "./favourites.route.js";
 import inventoryRoutes from "./inventory.route.js";
+import notificationsRoutes from "./notification.route.js";
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.use("/categories", categoriesRoutes);
 router.use("/coupons", couponRoutes);
 router.use("/favourites", favouritesRoutes);
 router.use("/inventory", inventoryRoutes);
+router.use("/notifications", notificationsRoutes);
 
 /* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {

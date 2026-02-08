@@ -203,3 +203,24 @@ export const bannerPagination = (query) => {
 
   return { page, limit, skip };
 };
+//--------------------------Notification FILTERS, SORTING AND PAGINATION UTILITIES--------------------------//
+
+export const notificationFilters = (query = {}) => {
+    const filters = {};
+    if (query.type) filters.type = query.type.toUpperCase();
+    return filters;
+};
+
+export const notificationSort = (query = {}) => {
+    if (query.sortBy) {
+        return { [query.sortBy]: query.order === "asc" ? 1 : -1 };
+    }
+    return { createdAt: -1 };
+};
+
+export const notificationPagination = (query = {}) => {
+    const page = parseInt(query.page, 10) || 1;
+    const limit = parseInt(query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+    return { page, limit, skip };
+};
