@@ -6,6 +6,7 @@ import userRoutes from "./user.route.js";
 import addressRoutes from "./address.route.js";
 import bannerRoutes from "./banner.route.js";
 import cartRoutes from "./cart.route.js";
+import categoriesRoutes from "./categories.route.js";
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.use("/users", userRoutes);
 router.use("/addresses", addressRoutes);
 router.use("/banners", bannerRoutes);
 router.use("/carts", cartRoutes);
+router.use("/categories", categoriesRoutes);
 
 /* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {
