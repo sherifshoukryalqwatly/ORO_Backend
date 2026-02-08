@@ -9,6 +9,7 @@ import cartRoutes from "./cart.route.js";
 import categoriesRoutes from "./categories.route.js";
 import couponRoutes from "./coupon.route.js";
 import favouritesRoutes from "./favourites.route.js";
+import inventoryRoutes from "./inventory.route.js";
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ router.use("/carts", cartRoutes);
 router.use("/categories", categoriesRoutes);
 router.use("/coupons", couponRoutes);
 router.use("/favourites", favouritesRoutes);
+router.use("/inventory", inventoryRoutes);
 
 /* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {
