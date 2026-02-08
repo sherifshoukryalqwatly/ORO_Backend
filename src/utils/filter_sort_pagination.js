@@ -114,3 +114,41 @@ export const userPagination = (query)=>{
     const skip = (page - 1) * limit;
     return {page, limit, skip};
 }
+
+//--------------------------Address FILTERS, SORTING AND PAGINATION UTILITIES--------------------------//
+
+export const addressFilters = (query)=>{
+    const filters = {}
+
+    if(query.search) {
+        const searchRegx = new RegExp(query.search,'i');
+
+        filters.$or = [
+            { label: { $regex: searchRegx } },
+            { country: { $regex: searchRegx } },
+            { city: { $regex: searchRegx } },
+            { area: { $regex: searchRegx } },
+            { street: { $regex: searchRegx } },
+            { building: { $regex: searchRegx } },
+            { phone: { $regex: searchRegx } },
+        ]
+    }
+
+    return filters
+}
+
+export const addressSort = (query)=>{
+    let sort = {createdAt:-1};
+    if(query.sortBy){
+        const [filed,order] = query.sort.split(':')
+        sort = { [filed]: order === "asc" ? 1 : -1 };
+    }
+    return sort;
+}
+
+export const addressPagination = (query)=>{
+    const page = parseInt(query.page, 10) || 1;
+    const limit = parseInt(query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+    return {page, limit, skip};
+}

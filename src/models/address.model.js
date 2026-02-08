@@ -35,11 +35,14 @@ const addressSchema = new Schema(
     },
 
     isDefault: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
 addressSchema.index({ location: '2dsphere' });
+addressSchema.index({ user: 1, isDeleted: 1 });
+
 
 addressSchema.pre('save', async function (next) {
   if (!this.isDefault) return next();
