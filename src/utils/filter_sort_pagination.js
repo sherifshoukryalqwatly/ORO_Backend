@@ -152,3 +152,54 @@ export const addressPagination = (query)=>{
     const skip = (page - 1) * limit;
     return {page, limit, skip};
 }
+
+//--------------------------Banner FILTERS, SORTING AND PAGINATION UTILITIES--------------------------//
+
+export const bannerFilters = (query) => {
+  const filters = {};
+
+  // search in localized title & subtitle
+  if (query.search) {
+    const searchRegex = new RegExp(query.search, 'i');
+
+    filters.$or = [
+      { 'title.en': { $regex: searchRegex } },
+      { 'title.ar': { $regex: searchRegex } },
+      { 'subtitle.en': { $regex: searchRegex } },
+      { 'subtitle.ar': { $regex: searchRegex } },
+    ];
+  }
+
+  // filter by active status
+  if (query.isActive !== undefined) {
+    filters.isActive = query.isActive === 'true';
+  }
+
+  return filters;
+};
+
+// =========================
+// SORT
+// =========================
+export const bannerSort = (query) => {
+  // default: homepage order
+  let sort = { displayOrder: 1, createdAt: -1 };
+
+  if (query.sort) {
+    const [field, order] = query.sort.split(':');
+    sort = { [field]: order === 'asc' ? 1 : -1 };
+  }
+
+  return sort;
+};
+
+// =========================
+// PAGINATION
+// =========================
+export const bannerPagination = (query) => {
+  const page = Math.max(parseInt(query.page, 10) || 1, 1);
+  const limit = Math.min(parseInt(query.limit, 10) || 10, 100);
+  const skip = (page - 1) * limit;
+
+  return { page, limit, skip };
+};

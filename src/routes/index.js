@@ -1,17 +1,27 @@
 import express from "express";
-import auditlogRoute from "./auditlog.route.js";
+
+import auditlogRoutes from "./auditlog.route.js";
 import authRoutes from "../auth/auth.route.js";
 import userRoutes from "./user.route.js";
+import addressRoutes from "./address.route.js";
+import bannerRoutes from "./banner.route.js";
 
 const router = express.Router();
 
-router.use("/auditlog", auditlogRoute);
+/* ----------------------------- API ROUTES ----------------------------- */
+router.use("/auditlogs", auditlogRoutes);
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
+router.use("/addresses", addressRoutes);
+router.use("/banners", bannerRoutes);
 
-// Default route for API health check
+/* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {
-  res.json({ message: "API is running" });
+  res.status(200).json({
+    success: true,
+    message: "API is running 🚀",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 export default router;
