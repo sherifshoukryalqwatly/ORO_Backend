@@ -16,6 +16,7 @@ import paymentRoutes from "./payment.route.js";
 import productRoutes from "./product.route.js";
 import refundRoutes from "./refund.route.js";
 import shippingRoutes from "./shipping.route.js";
+import reviewRoutes from "./review.route.js";
 
 const router = express.Router();
 
@@ -36,6 +37,7 @@ router.use("/payments", paymentRoutes);
 router.use("/products", productRoutes);
 router.use("/refunds", refundRoutes);
 router.use("/shippings", shippingRoutes);
+router.use("/reviews", reviewRoutes);
 
 /* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {
