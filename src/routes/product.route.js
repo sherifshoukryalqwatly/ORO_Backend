@@ -6,6 +6,7 @@ import {
   createProductSchema,
   updateProductSchema,
 } from "../validations/product.validation.js";
+import upload from "../config/multer.js";
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.use(isAuthenticated);
 router.post(
   "/",
   authorizeRole("admin"),
+  upload.array('images', 5), // ✅ Multer for multiple images
   validationMiddleware(createProductSchema),
   productController.create
 );
@@ -24,6 +26,7 @@ router.post(
 router.patch(
   "/:id",
   authorizeRole("admin"),
+  upload.array('images', 5), // ✅ Multer for multiple images
   validationMiddleware(updateProductSchema),
   productController.update
 );

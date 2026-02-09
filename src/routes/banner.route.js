@@ -8,6 +8,7 @@ import {
   bannerIdSchema
 } from '../validations/banner.validation.js';
 import { isAuthenticated, authorizeRole } from '../middlewares/auth.middleware.js';
+import upload from '../config/multer.js';
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.use(isAuthenticated);
 router.post(
   '/',
   authorizeRole('admin'),
+  upload.single("image"),
   validationMiddleware(createBannerSchema),
   bannerController.create
 );
@@ -47,6 +49,7 @@ router.get(
 router.patch(
   '/:id',
   authorizeRole('admin'),
+  upload.single("image"),
   validationMiddleware(updateBannerSchema),
   bannerController.update
 );

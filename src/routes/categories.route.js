@@ -9,6 +9,7 @@ import {
   findBySlugSchema
 } from '../validations/categories.validation.js';
 import { isAuthenticated, authorizeRole } from '../middlewares/auth.middleware.js';
+import upload from '../config/multer.js';
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ router.use(isAuthenticated, authorizeRole('admin'));
 // Create category
 router.post(
   '/',
+  upload.single("image"),
   validationMiddleware(createCategorySchema),
   categoryController.create
 );
@@ -46,6 +48,7 @@ router.get(
 // Update category
 router.patch(
   '/:id',
+  upload.single("image"),
   validationMiddleware(updateCategorySchema),
   categoryController.update
 );
