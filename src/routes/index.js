@@ -13,6 +13,7 @@ import inventoryRoutes from "./inventory.route.js";
 import notificationsRoutes from "./notification.route.js";
 import ordersRoutes from "./order.route.js";
 import paymentRoutes from "./payment.route.js";
+import productRoutes from "./product.route.js";
 
 const router = express.Router();
 
@@ -30,6 +31,7 @@ router.use("/inventory", inventoryRoutes);
 router.use("/notifications", notificationsRoutes);
 router.use("/orders", ordersRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/products", productRoutes);
 
 /* ----------------------------- HEALTH CHECK ----------------------------- */
 router.get("/", (req, res) => {
