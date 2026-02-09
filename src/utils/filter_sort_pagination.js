@@ -224,3 +224,44 @@ export const notificationPagination = (query = {}) => {
     const skip = (page - 1) * limit;
     return { page, limit, skip };
 };
+//--------------------------Order FILTERS, SORTING AND PAGINATION UTILITIES--------------------------//
+
+/* ----------------------------- Filters ----------------------------- */
+export const orderFilters = (query = {}) => {
+  const filters = {};
+
+  if (query.status) {
+    filters.orderStatus = query.status.toLowerCase();
+  }
+
+  if (query.paymentStatus) {
+    filters.paymentStatus = query.paymentStatus.toLowerCase();
+  }
+
+  if (query.userId) {
+    filters.user = query.userId;
+  }
+
+  if (query.startDate || query.endDate) {
+    filters.createdAt = {};
+    if (query.startDate) filters.createdAt.$gte = new Date(query.startDate);
+    if (query.endDate) filters.createdAt.$lte = new Date(query.endDate);
+  }
+
+  return filters;
+};
+
+/* ----------------------------- Sort ----------------------------- */
+export const orderSort = (query = {}) => {
+  if (!query.sortBy) return { createdAt: -1 };
+  const [field, order] = query.sortBy.split(":");
+  return { [field]: order === "asc" ? 1 : -1 };
+};
+
+/* ----------------------------- Pagination ----------------------------- */
+export const orderPagination = (query = {}) => {
+  const page = parseInt(query.page, 10) || 1;
+  const limit = parseInt(query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+};
