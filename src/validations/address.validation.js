@@ -28,7 +28,6 @@ const locationSchema = Joi.object({
 // CREATE ADDRESS
 // ==========================
 export const createAddressSchema = Joi.object({
-  user: Joi.string().custom(objectId).required(),
 
   label: Joi.string().valid('home', 'work', 'other').default('home'),
 
@@ -78,7 +77,9 @@ export const updateAddressSchema = Joi.object({
 // PARAMS VALIDATION
 // ==========================
 export const addressIdParamSchema = Joi.object({
-  id: Joi.string().custom(objectId).required(),
+  id: Joi.string()
+    .required()
+    .custom(objectId, 'ObjectId validation'),
 });
 
 export const addressIdsBodySchema = Joi.object({

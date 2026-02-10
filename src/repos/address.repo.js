@@ -12,7 +12,7 @@ export const create = async (data) => {
 // FIND BY ID
 // ==========================
 export const findById = async (id) => {
-  return await Address.findOne({ _id: id, isDeleted: { $ne: true } });
+  return await Address.findOne({ _id: id});
 };
 
 // ==========================

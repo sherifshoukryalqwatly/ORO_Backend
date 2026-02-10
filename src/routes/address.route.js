@@ -8,6 +8,7 @@ import {
   addressIdsBodySchema,
 } from '../validations/address.validation.js';
 import { isAuthenticated, authorizeRole } from '../middlewares/auth.middleware.js';
+import { validateParams } from '../middlewares/validate_param.middleware.js';
 
 const router = express.Router();
 
@@ -27,16 +28,16 @@ router.route('/me')
 // ==========================
 router.route('/:id')
   .get(
-    validationMiddleware(addressIdParamSchema, 'params'),
+    validateParams(addressIdParamSchema, 'params'),
     addressController.findById
   )
   .patch(
-    validationMiddleware(addressIdParamSchema, 'params'),
+    validateParams(addressIdParamSchema, 'params'),
     validationMiddleware(updateAddressSchema),
     addressController.update
   )
   .delete(
-    validationMiddleware(addressIdParamSchema, 'params'),
+    validateParams(addressIdParamSchema, 'params'),
     addressController.remove
   );
 
@@ -68,7 +69,7 @@ router.route('/hard/delete')
 router.route('/hard/:id')
   .delete(
     authorizeRole('admin'),
-    validationMiddleware(addressIdParamSchema, 'params'),
+    validateParams(addressIdParamSchema, 'params'),
     addressController.hRemove
   );
 

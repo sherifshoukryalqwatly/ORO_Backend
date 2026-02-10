@@ -45,14 +45,13 @@ addressSchema.index({ user: 1, isDeleted: 1 });
 
 
 addressSchema.pre('save', async function (next) {
-  if (!this.isDefault) return next();
+  if (!this.isDefault) return ;
 
   await this.constructor.updateMany(
     { user: this.user, _id: { $ne: this._id } },
     { $set: { isDefault: false } }
   );
 
-  next();
 });
 
 const Address = model('Address', addressSchema);
