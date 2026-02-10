@@ -12,8 +12,7 @@ const shippingSchema = new Schema(
     order: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
-      required: [true, 'Order Id is required / الرقم المميز للطلب مطلوب'],
-      unique: [true, 'Shipping already exists for this order / الشحن لهذا الطلب موجود بالفعل']
+      required: [true, 'Order Id is required / الرقم المميز للطلب مطلوب']
     },
 
     carrier: {

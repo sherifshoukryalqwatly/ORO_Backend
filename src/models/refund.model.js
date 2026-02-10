@@ -49,7 +49,6 @@ const refundSchema = new Schema(
 /* ----------------------------- Indexes ----------------------------- */
 refundSchema.index({ user: 1 });
 refundSchema.index({ order: 1 });
-refundSchema.index({ payment: 1 });
 refundSchema.index({ status: 1 });
 refundSchema.index({ createdAt: -1 });
 refundSchema.index(

@@ -38,7 +38,6 @@ const cartSchema = new Schema(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      unique: true,
       required: [true, 'User Id is Required / الرقم المميز للمستخدم مطلوب']
     },
 
@@ -58,7 +57,7 @@ const cartSchema = new Schema(
 );
 
 // Index
-cartSchema.index({ user: 1 });
+cartSchema.index({ user: 1 },{ unique:true });
 
 // 🔹 Virtuals
 cartSchema.virtual('totalPrice').get(function () {

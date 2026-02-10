@@ -7,8 +7,7 @@ const couponSchema = new Schema(
       type: String,
       required: [true, 'Coupon Code is Required / كود الكوبون مطلوب'],
       trim: true,
-      uppercase: true,
-      unique: true
+      uppercase: true
     },
 
     discountType: {
