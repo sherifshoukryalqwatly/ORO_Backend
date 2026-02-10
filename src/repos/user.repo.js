@@ -2,7 +2,7 @@ import User from '../models/user.model.js';
 
 //CREATE
 export const create = async (data)=> {
-    const user = new User({isVerified:true,...data});
+    const user = new User(data);
     return await user.save();
 }
 //Find
