@@ -13,8 +13,7 @@ export const create = async (data) => {
 ========================= */
 export const findById = async (id) => {
   return await Banner.findOne({
-    _id: id,
-    isDeleted: { $ne: true },
+    _id: id
   });
 };
 

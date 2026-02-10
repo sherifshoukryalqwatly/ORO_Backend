@@ -1,25 +1,52 @@
 import ApiError from '../utils/ApiError.js';
 
-const validationMiddleware = (schema) => {
+const validationMiddleware = (schemas) => {
   return (req, res, next) => {
-    const { body, params, query } = req;
 
-    const dataToValidate = {
-      ...(Object.keys(body).length ? { body } : {}),
-      ...(Object.keys(params).length ? { params } : {}),
-      ...(Object.keys(query).length ? { query } : {}),
-    };
+    if (schemas.body) {
+      const { error, value } = schemas.body.validate(req.body, {
+        abortEarly: false,
+        allowUnknown: false,
+        stripUnknown: true,
+      });
 
-    const { error } = schema.validate(dataToValidate.body || body, {
-      abortEarly: false, // return all errors
-      allowUnknown: false, // disallow unknown fields
-      stripUnknown: true, // remove unknown fields
-    });
+      if (error) {
+        return next(
+          ApiError.badRequest(
+            error.details.map(e => e.message).join(', ')
+          )
+        );
+      }
 
-    if (error) {
-      // Combine all messages
-      const messages = error.details.map((detail) => detail.message).join(', ');
-      return next(ApiError.badRequest(messages));
+      req.body = value;
+    }
+
+    if (schemas.params) {
+      const { error, value } = schemas.params.validate(req.params);
+
+      if (error) {
+        return next(
+          ApiError.badRequest(
+            error.details.map(e => e.message).join(', ')
+          )
+        );
+      }
+
+      req.params = value;
+    }
+
+    if (schemas.query) {
+      const { error, value } = schemas.query.validate(req.query);
+
+      if (error) {
+        return next(
+          ApiError.badRequest(
+            error.details.map(e => e.message).join(', ')
+          )
+        );
+      }
+
+      req.query = value;
     }
 
     next();

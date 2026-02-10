@@ -87,8 +87,6 @@ bannerSchema.pre('save', function (next) {
   if (!this.isDeleted) {
     this.deletedAt = null;
   }
-
-  next();
 });
 
 const Banner = model("Banner", bannerSchema);

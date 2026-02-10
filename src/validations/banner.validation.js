@@ -2,12 +2,16 @@ import Joi from 'joi';
 import mongoose from 'mongoose';
 
 /* ----------------------------- Helpers ----------------------------- */
-const objectId = Joi.string().custom((value, helpers) => {
-  if (!mongoose.Types.ObjectId.isValid(value)) {
-    return helpers.message('Invalid MongoDB ObjectId');
-  }
-  return value;
-}, 'ObjectId Validation');
+export const objectId = Joi.string()
+  .custom((value, helpers) => {
+    if (!mongoose.Types.ObjectId.isValid(value)) {
+      return helpers.error('any.invalid'); 
+    }
+    return value;
+  })
+  .messages({
+    'any.invalid': 'Invalid MongoDB ObjectId'
+  });
 
 const localizedString = (min = 2, max = 500, required = true) =>
   Joi.object({
@@ -18,22 +22,14 @@ const localizedString = (min = 2, max = 500, required = true) =>
 /* ----------------------------- CREATE ----------------------------- */
 export const createBannerSchema = {
   body: Joi.object({
-    title: localizedString(2, 100),
+    'title.en': Joi.string().trim().min(2).required(),
+    'title.ar': Joi.string().trim().min(2).required(),
 
-    subtitle: Joi.object({
-      ar: Joi.string().trim().min(2).max(200).allow(''),
-      en: Joi.string().trim().min(2).max(200).allow('')
-    }).optional(),
-
-    image: Joi.object({
-      public_id: Joi.string().required(),
-      secure_url: Joi.string().uri().required()
-    }).required(),
+    'subtitle.en': Joi.string().trim().allow(''),
+    'subtitle.ar': Joi.string().trim().allow(''),
 
     link: Joi.string().uri().allow(null, ''),
-
     displayOrder: Joi.number().min(0),
-
     isActive: Joi.boolean()
   })
 };
@@ -67,13 +63,16 @@ export const updateBannerSchema = {
     isActive: Joi.boolean(),
 
     isDeleted: Joi.boolean()
-  }).min(1)
+  }).optional()
 };
 
 /* ----------------------------- DELETE MANY ----------------------------- */
 export const deleteBannerSchema = {
   body: Joi.object({
-    ids: Joi.array().items(objectId).min(1).required()
+    ids: Joi.array()
+      .items(objectId) 
+      .min(1)
+      .required()
   })
 };
 

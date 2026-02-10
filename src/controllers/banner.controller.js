@@ -128,30 +128,41 @@ export const update = asyncWrapper(async (req, res) => {
     throw new Error("Banner not found / البنر غير موجود");
   }
 
+  if (!req.file && Object.keys(req.body).length === 0) {
+    throw new Error(
+      "At least one field or image is required / يجب إرسال بيانات أو صورة"
+    );
+  }
+
   const updateData = {
     link: req.body.link ?? banner.link,
     displayOrder: req.body.displayOrder ?? banner.displayOrder,
     isActive: req.body.isActive ?? banner.isActive,
   };
 
-  /* ------------------ 📝 Localized fields ------------------ */
-  if (req.body["title.en"] || req.body["title.ar"]) {
+  /* -------- Localized fields -------- */
+  if (
+    req.body["title.en"] !== undefined ||
+    req.body["title.ar"] !== undefined
+  ) {
     updateData.title = {
       en: req.body["title.en"] ?? banner.title.en,
       ar: req.body["title.ar"] ?? banner.title.ar,
     };
   }
 
-  if (req.body["subtitle.en"] || req.body["subtitle.ar"]) {
+  if (
+    req.body["subtitle.en"] !== undefined ||
+    req.body["subtitle.ar"] !== undefined
+  ) {
     updateData.subtitle = {
       en: req.body["subtitle.en"] ?? banner.subtitle.en,
       ar: req.body["subtitle.ar"] ?? banner.subtitle.ar,
     };
   }
 
-  /* ------------------ 🖼 Image replace ------------------ */
+  /* -------- Image replace -------- */
   if (req.file) {
-    // delete old image
     if (banner.image?.public_id) {
       await cloudinary.uploader.destroy(banner.image.public_id);
     }
@@ -184,6 +195,7 @@ export const update = asyncWrapper(async (req, res) => {
   );
 });
 
+
 // ==========================
 // SOFT DELETE BANNER (ADMIN)
 // ==========================
@@ -209,20 +221,35 @@ export const remove = asyncWrapper(async (req, res) => {
 // HARD DELETE BANNER (ADMIN)
 // ==========================
 export const hRemove = asyncWrapper(async (req, res) => {
-  await bannerService.hRemove(req.params.id);
+  const { id } = req.params;
+
+  const banner = await bannerService.findById(id);
+  if (!banner) {
+    throw ApiError.notFound(
+      'Banner not found / البنر غير موجود'
+    );
+  }
+
+  /* ---------- Destroy image ---------- */
+  if (banner.image?.public_id) {
+    await cloudinary.uploader.destroy(banner.image.public_id);
+  }
+
+  /* ---------- Hard delete DB ---------- */
+  await bannerService.hRemove(id);
 
   await logAction({
     req,
     action: 'DELETE',
     targetModel: 'Banner',
-    targetId: req.params.id,
-    description: 'Hard deleted banner',
+    targetId: id,
+    description: 'Hard deleted banner'
   });
 
   return appResponses.success(
     res,
     null,
-    'Banner Deleted Successfully / تم حذف البنر نهائيًا'
+    'Banner Deleted Successfully / تم حذف البنر بنجاح'
   );
 });
 
@@ -250,18 +277,30 @@ export const removeAll = asyncWrapper(async (req, res) => {
 // HARD DELETE MULTIPLE BANNERS (ADMIN)
 // ==========================
 export const hRemoveAll = asyncWrapper(async (req, res) => {
-  await bannerService.hRemoveAll(req.body.ids);
+  const { ids } = req.body;
+
+  /* ---------- Destroy images from Cloudinary ---------- */
+  const publicIds = banners
+    .map(b => b.image?.public_id)
+    .filter(Boolean);
+
+  if (publicIds.length) {
+    await cloudinary.api.delete_resources(publicIds);
+  }
+
+  /* ---------- Hard delete from DB ---------- */
+  const result = await bannerService.hRemoveAll(ids);
 
   await logAction({
     req,
     action: 'DELETE',
     targetModel: 'Banner',
-    description: `Hard deleted multiple banners: ${req.body.ids.join(', ')}`,
+    description: `Hard deleted banners: ${ids.join(', ')}`
   });
 
   return appResponses.success(
     res,
     null,
-    'Banners Deleted Successfully / تم حذف البنرات نهائيًا'
+    `${result.deletedCount} Banners Deleted Successfully / تم حذف ${result.deletedCount} بنر بنجاح`
   );
 });

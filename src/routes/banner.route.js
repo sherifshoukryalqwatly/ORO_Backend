@@ -53,6 +53,13 @@ router.patch(
   validationMiddleware(updateBannerSchema),
   bannerController.update
 );
+// Hard delete banner
+router.delete(
+  '/hard/:id',
+  authorizeRole('admin'),
+  validationMiddleware(bannerIdSchema),
+  bannerController.hRemove
+);
 
 // Soft delete banner
 router.delete(
@@ -62,12 +69,22 @@ router.delete(
   bannerController.remove
 );
 
+
 // Hard delete banners (bulk)
+router.delete(
+  '/hard',
+  authorizeRole('admin'),
+  validationMiddleware(deleteBannerSchema),
+  bannerController.hRemoveAll
+);
+
+// Soft delete banners (bulk)
 router.delete(
   '/',
   authorizeRole('admin'),
   validationMiddleware(deleteBannerSchema),
   bannerController.removeAll
 );
+
 
 export default router;
