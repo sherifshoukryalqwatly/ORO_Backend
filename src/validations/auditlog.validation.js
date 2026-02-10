@@ -5,7 +5,7 @@ import Joi from "joi";
 
 export const createAuditLogSchema = Joi.object({
   action: Joi.string()
-    .valid('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'PAYMENT', 'ORDER', 'REFUND', 'COUPON', 'CART', 'WISHLIST')
+    .valid('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'PAYMENT', 'ORDER', 'REFUND', 'COUPON', 'CART', 'WISHLIST','READ')
     .required(),
   targetModel: Joi.string().required(),
   targetId: Joi.string().optional().allow(null),
