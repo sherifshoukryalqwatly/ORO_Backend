@@ -30,8 +30,6 @@ inventorySchema.pre('save', function (next) {
   if (!this.isDeleted) {
     this.deletedAt = null;
   }
-
-  next();
 });
 
 const Inventory = model("Inventory", inventorySchema);
