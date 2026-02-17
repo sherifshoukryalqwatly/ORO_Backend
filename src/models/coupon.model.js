@@ -102,7 +102,6 @@ couponSchema.pre('save', function (next) {
     this.deletedAt = null;
   }
 
-  next();
 });
 
 const Coupon = model("Coupon", couponSchema);

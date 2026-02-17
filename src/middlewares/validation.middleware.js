@@ -18,7 +18,7 @@ const validationMiddleware = (schemas) => {
         );
       }
 
-      Object.assign(req.body, value);   // ✅ بدل reassignment
+      Object.assign(req.body, value);
     }
 
     if (schemas.params) {

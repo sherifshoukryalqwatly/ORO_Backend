@@ -1,12 +1,17 @@
 import express from "express";
 import * as couponController from '../controllers/coupon.controller.js';
 import validationMiddleware from "../middlewares/validation.middleware.js";
-import { createCouponSchema, updateCouponSchema, couponIdSchema, couponCodeSchema, deleteCouponsSchema } from '../validations/coupon.validation.js';
+import { 
+  createCouponSchema,
+  updateCouponSchema,
+  couponIdSchema,
+  couponCodeSchema,
+  deleteCouponsSchema
+  } from '../validations/coupon.validation.js';
 import { authorizeRole, isAuthenticated } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// 🔹 جميع المسارات تحتاج توثيق الدخول
 router.use(isAuthenticated);
 
 // ------------------- GET BY CODE -------------------
