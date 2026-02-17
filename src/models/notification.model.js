@@ -84,8 +84,6 @@ notificationSchema.pre('save', function (next) {
   if (!this.isDeleted) {
     this.deletedAt = null;
   }
-
-  next();
 });
 
 const Notification = model("Notification", notificationSchema);

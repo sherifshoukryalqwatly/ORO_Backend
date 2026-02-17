@@ -53,5 +53,8 @@ router.delete(
     validationMiddleware(bulkIdsSchema),
     notificationController.hRemoveAll
 );
+// ------------------- GET ALL -------------------
+router.route('/')
+  .get(authorizeRole('admin'), notificationController.findAll);
 
 export default router;

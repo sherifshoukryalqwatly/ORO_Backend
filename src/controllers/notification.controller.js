@@ -75,7 +75,21 @@ export const findByUser = asyncWrapper(async (req, res) => {
         "User notifications retrieved successfully / تم استرجاع إشعارات المستخدم بنجاح"
     );
 });
+/* ----------------------------- GET ALL ----------------------------- */
+export const findAll = asyncWrapper(async (req, res) => {
+  const { notifications, total } = await notificationService.findAll(req.query.filters || {}, req.query.sort || {}, req.query.pagination || {});
 
+  const pages = Math.ceil(total / ((req.query.pagination?.limit) || total));
+
+  await logAction({
+    req,
+    action: 'READ',
+    targetModel: 'Notifications',
+    description: `Fetched all Notifications (count: ${notifications.length})`
+  });
+
+  return appResponses.success(res, { data: notifications, total, pages }, 'Notifications Retrieved Successfully / تم استرجاع الاشعارات بنجاح');
+});
 // ------------------- UPDATE -------------------
 export const update = asyncWrapper(async (req, res) => {
     const updatedNotification = await notificationService.update(req.params.id, req.body);

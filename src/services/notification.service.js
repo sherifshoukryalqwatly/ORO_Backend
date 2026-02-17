@@ -29,12 +29,15 @@ export const findByUser = async (userId, query = {}) => {
     const sort = notificationSort(query);
     const pagination = notificationPagination(query);
 
-    const { notifications, total } = await notificationRepo.findByUser(userId, filters, sort, { pagination, limit, skip });
-    const pages = Math.ceil(total / limit);
+    const { notifications, total } = await notificationRepo.findByUser(userId, filters, sort,  pagination);
+    const pages = Math.ceil(total / pagination.limit);
 
     return { notifications, total, pages };
 };
-
+/* ----------------------------- GET ALL ----------------------------- */
+export const findAll = async (filters = {}, sort = {}, pagination = {}) => {
+  return await notificationRepo.findAll(filters, sort, pagination);
+};
 // ------------------- UPDATE -------------------
 export const update = async (id, newData) => {
     const notification = await findById(id);
