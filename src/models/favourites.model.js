@@ -15,12 +15,6 @@ const favouriteSchema = new Schema(
         ref: "Product"
       }
     ],
-
-    isDeleted: {
-      type: Boolean,
-      default: false
-    },
-    deletedAt: { type: Date }
   },
   {
     timestamps: true,
@@ -33,24 +27,10 @@ const favouriteSchema = new Schema(
 favouriteSchema.index({ user: 1 }, { unique: true });
 
 // 🔹 Deduplicate products
-favouriteSchema.pre('save', function (next) {
+favouriteSchema.pre('save', function () {
   if (this.products?.length) {
     this.products = [...new Set(this.products.map(id => id.toString()))];
   }
-  next();
-});
-
-// 🔹 Soft delete consistency
-favouriteSchema.pre('save', function (next) {
-  if (this.isDeleted && !this.deletedAt) {
-    this.deletedAt = new Date();
-  }
-
-  if (!this.isDeleted) {
-    this.deletedAt = null;
-  }
-
-  next();
 });
 
 const Favourite = model("Favourite", favouriteSchema);

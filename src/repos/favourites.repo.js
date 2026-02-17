@@ -1,61 +1,57 @@
-import Favourite from '../models/favourites.model.js';
+import mongoose from "mongoose";
+import Favourite from "../models/favourites.model.js";
 
-// CREATE or GET if already exists
-export const createOrGet = async (data) => {
-  let favourite = await Favourite.findOne({ user: data.user });
-  if (favourite) return favourite;
-
-  favourite = new Favourite(data);
-  return await favourite.save();
+/* ===============================
+   GET USER FAVOURITES
+================================= */
+export const getUserFavourites = async (userId) => {
+  return await Favourite.findOne({ user: userId })
+    .populate("products");
 };
 
-// GET BY ID
-export const findById = async (id) => {
-  return await Favourite.findById(id).populate('products');
+
+/* ===============================
+   ADD PRODUCT TO FAVOURITES
+================================= */
+export const addProduct = async (userId, productId) => {
+
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    throw new Error("Invalid Product Id");
+  }
+
+  const favourite = await Favourite.findOneAndUpdate(
+    { user: userId },
+    {
+      $addToSet: { products: productId } // prevents duplicates
+    },
+    {
+      new: true,
+      upsert: true // creates doc if not exists
+    }
+  ).populate("products");
+
+  return favourite;
 };
 
-// GET BY USER
-export const findByUser = async (userId) => {
-  return await Favourite.findOne({ user: userId }).populate('products');
-};
 
-// GET ALL
-export const findAll = async (filters = {}, sort = {}, pagination = {}) => {
-  const [favourites, total] = await Promise.all([
-    Favourite.find(filters)
-      .sort(sort)
-      .limit(pagination.limit)
-      .skip(pagination.skip)
-      .populate('products'),
-    Favourite.countDocuments(filters)
-  ]);
-  return { favourites, total };
-};
+/* ===============================
+   REMOVE PRODUCT FROM FAVOURITES
+================================= */
+export const removeProduct = async (userId, productId) => {
 
-// UPDATE (Add/Remove products)
-export const update = async (id, newData) => {
-  return await Favourite.findByIdAndUpdate(id, newData, { new: true }).populate('products');
-};
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    throw new Error("Invalid Product Id");
+  }
 
-// SOFT DELETE
-export const remove = async (id) => {
-  return await Favourite.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
-};
+  const favourite = await Favourite.findOneAndUpdate(
+    { user: userId },
+    {
+      $pull: { products: productId }
+    },
+    {
+      new: true
+    }
+  ).populate("products");
 
-// HARD DELETE
-export const hRemove = async (id) => {
-  return await Favourite.findByIdAndDelete(id);
-};
-
-// BULK SOFT DELETE
-export const removeAll = async (ids) => {
-  return await Favourite.updateMany(
-    { _id: { $in: ids } },
-    { $set: { isDeleted: true } }
-  );
-};
-
-// BULK HARD DELETE
-export const hRemoveAll = async (ids) => {
-  return await Favourite.deleteMany({ _id: { $in: ids } });
+  return favourite;
 };
