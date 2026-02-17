@@ -17,7 +17,8 @@ export const getMyCart = asyncWrapper(async (req, res) => {
 
 // ADD ITEM TO CART
 export const addItem = asyncWrapper(async (req, res) => {
-  const cart = await cartService.addItem(req.user.id, req.body);
+  const { productId } = req.params;
+  const cart = await cartService.addItem(req.user.id, productId);
 
   return appResponses.success(
     res,
@@ -93,46 +94,8 @@ export const findAll = asyncWrapper(async (req, res) => {
   );
 });
 
-// SOFT DELETE CART
-export const remove = asyncWrapper(async (req, res) => {
-  await cartService.remove(req.params.id);
 
-  return appResponses.success(
-    res,
-    null,
-    'Cart Deleted Successfully / تم حذف السلة بنجاح'
-  );
-});
 
-// HARD DELETE CART
-export const hRemove = asyncWrapper(async (req, res) => {
-  await cartService.hRemove(req.params.id);
 
-  return appResponses.success(
-    res,
-    null,
-    'Cart Permanently Deleted / تم حذف السلة نهائيًا'
-  );
-});
 
-// SOFT DELETE MANY
-export const removeAll = asyncWrapper(async (req, res) => {
-  await cartService.removeAll(req.body.ids);
 
-  return appResponses.success(
-    res,
-    null,
-    'Carts Deleted Successfully / تم حذف السلال بنجاح'
-  );
-});
-
-// HARD DELETE MANY
-export const hRemoveAll = asyncWrapper(async (req, res) => {
-  await cartService.hRemoveAll(req.body.ids);
-
-  return appResponses.success(
-    res,
-    null,
-    'Carts Permanently Deleted / تم حذف السلال نهائيًا'
-  );
-});

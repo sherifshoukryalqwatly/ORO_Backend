@@ -45,32 +45,7 @@ export const upsertByUser = async (userId, updateData) => {
   );
 };
 
-/* ----------------------------- DELETE ----------------------------- */
-// Hard delete
-export const hRemove = async (id) => {
-  return await Cart.findByIdAndDelete(id);
-};
 
-// Soft delete
-export const remove = async (id) => {
-  return await Cart.findByIdAndUpdate(
-    id,
-    { isDeleted: true },
-    { new: true }
-  );
-};
 
-/* ----------------------------- DELETE MANY ----------------------------- */
-// Hard delete all
-export const hRemoveAll = async (ids) => {
-  return await Cart.deleteMany({ _id: { $in: ids } });
-};
 
-// Soft delete all
-export const removeAll = async (ids) => {
-  return await Cart.updateMany(
-    { _id: { $in: ids } },
-    { $set: { isDeleted: true } },
-    { runValidators: true }
-  );
-};
+

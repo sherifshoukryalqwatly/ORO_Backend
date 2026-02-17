@@ -20,12 +20,30 @@ export const getMyCart = async (userId) => {
 };
 
 /* ----------------------------- ADD / UPDATE ITEM ----------------------------- */
-export const addItem = async (userId, itemData) => {
+export const addItem = async (userId, productId) => {
   if (!validateObjectId(userId)) {
     throw ApiError.badRequest('Invalid User Id / رقم مستخدم غير صحيح');
   }
 
-  const cart = await cartRepo.findByUser(userId);
+  if (!validateObjectId(productId)) {
+    throw ApiError.badRequest('Invalid Product Id / رقم منتج غير صحيح');
+  }
+
+  // Get product from DB
+  const product = await productRepo.findById(productId);
+  if (!product) {
+    throw ApiError.notFound('Product not found / المنتج غير موجود');
+  }
+
+  // Find user's cart
+  let cart = await cartRepo.findByUser(userId);
+
+  const itemData = {
+    product: product._id,
+    productNameAtAddition: product.name,
+    quantity: 1,
+    priceAtAddition: product.price
+  };
 
   // If cart doesn't exist → create new
   if (!cart) {
@@ -35,21 +53,21 @@ export const addItem = async (userId, itemData) => {
     });
   }
 
-  // Check if product already exists in cart
+  // Check if product already exists
   const itemIndex = cart.items.findIndex(
-    (item) => item.product.toString() === itemData.product
+    (item) => item.product.toString() === productId
   );
 
   if (itemIndex > -1) {
-    // Update quantity
-    cart.items[itemIndex].quantity += itemData.quantity;
-    cart.items[itemIndex].priceAtAddition = itemData.priceAtAddition;
+    // Increase quantity
+    cart.items[itemIndex].quantity += 1;
   } else {
     cart.items.push(itemData);
   }
 
   return await cart.save();
 };
+
 
 /* ----------------------------- UPDATE ITEM QUANTITY ----------------------------- */
 export const updateItem = async (userId, productId, quantity) => {
@@ -119,32 +137,4 @@ export const findAll = async (filters, sort, pagination) => {
   return await cartRepo.findAll(filters, sort, pagination);
 };
 
-export const remove = async (id) => {
-  const cart = await cartRepo.findById(id);
-  if (!cart) throw ApiError.notFound('Cart not found');
 
-  return await cartRepo.remove(id);
-};
-
-export const hRemove = async (id) => {
-  const cart = await cartRepo.findById(id);
-  if (!cart) throw ApiError.notFound('Cart not found');
-
-  return await cartRepo.hRemove(id);
-};
-
-export const removeAll = async (ids) => {
-  if (!Array.isArray(ids) || ids.length === 0) {
-    throw ApiError.badRequest('IDs array is required');
-  }
-
-  return await cartRepo.removeAll(ids);
-};
-
-export const hRemoveAll = async (ids) => {
-  if (!Array.isArray(ids) || ids.length === 0) {
-    throw ApiError.badRequest('IDs array is required');
-  }
-
-  return await cartRepo.hRemoveAll(ids);
-};

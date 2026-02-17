@@ -46,8 +46,6 @@ const cartSchema = new Schema(
       default: []
     },
 
-    isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date }
   },
   {
     timestamps: true,
@@ -61,7 +59,9 @@ cartSchema.index({ user: 1 },{ unique:true });
 
 // 🔹 Virtuals
 cartSchema.virtual('totalPrice').get(function () {
-  return this.items.reduce((sum, item) => sum + item.totalItemPrice, 0);
+  return this.items.reduce((sum, item) => 
+    sum + (item.totalItemPrice || 0), 0
+  );
 });
 
 cartSchema.virtual('itemCount').get(function () {
@@ -70,23 +70,10 @@ cartSchema.virtual('itemCount').get(function () {
 
 // 🔹 Calculate totals
 cartSchema.pre('save', function (next) {
+
   this.items.forEach(item => {
     item.totalItemPrice = item.quantity * item.priceAtAddition;
   });
-  next();
-});
-
-// 🔹 Soft delete consistency
-cartSchema.pre('save', function (next) {
-  if (this.isDeleted && !this.deletedAt) {
-    this.deletedAt = new Date();
-  }
-
-  if (!this.isDeleted) {
-    this.deletedAt = null;
-  }
-
-  next();
 });
 
 const Cart = model("Cart", cartSchema);

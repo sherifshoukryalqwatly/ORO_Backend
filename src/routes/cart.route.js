@@ -5,9 +5,8 @@ import {
   addItemSchema,
   updateItemSchema,
   removeItemSchema,
-  cartIdSchema,
-  deleteCartsSchema
-} from '../validations/cart.validation.js';
+  cartIdSchema
+  } from '../validations/cart.validation.js';
 import { isAuthenticated, authorizeRole } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
@@ -20,7 +19,7 @@ router.get('/me', cartController.getMyCart);
 
 // Add item to cart
 router.post(
-  '/items',
+  '/items/:productId',
   validationMiddleware(addItemSchema),
   cartController.addItem
 );
@@ -51,24 +50,5 @@ router.get('/:id', validationMiddleware(cartIdSchema), cartController.findById);
 // Get all carts (filters / sort / pagination optional)
 router.get('/', cartController.findAll);
 
-// Soft delete cart
-router.delete('/:id', validationMiddleware(cartIdSchema), cartController.remove);
-
-// Hard delete cart
-router.delete('/hard/:id', validationMiddleware(cartIdSchema), cartController.hRemove);
-
-// Soft delete multiple carts
-router.delete(
-  '/bulk',
-  validationMiddleware(deleteCartsSchema),
-  cartController.removeAll
-);
-
-// Hard delete multiple carts
-router.delete(
-  '/bulk/hard',
-  validationMiddleware(deleteCartsSchema),
-  cartController.hRemoveAll
-);
 
 export default router;

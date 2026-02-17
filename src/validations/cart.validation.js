@@ -47,9 +47,3 @@ export const cartIdSchema = {
   })
 };
 
-/* ----------------------------- DELETE MANY (ADMIN) ----------------------------- */
-export const deleteCartsSchema = {
-  body: Joi.object({
-    ids: Joi.array().items(objectId).min(1).required()
-  })
-};
