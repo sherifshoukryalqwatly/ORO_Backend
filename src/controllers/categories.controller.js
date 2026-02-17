@@ -3,14 +3,17 @@ import asyncWrapper from '../utils/asyncHandler.js';
 import { appResponses } from '../utils/ApiResponse.js';
 import { uploadToCloudinary } from '../utils/cloudinaryUpload.js';
 import cloudinary from '../config/cloudinary.js';
+import ApiError from '../utils/ApiError.js';
 
 /* ----------------------------- CREATE CATEGORY ----------------------------- */
 export const create = asyncWrapper(async (req, res) => {
   if (!req.file) {
-    throw new Error("Category image is required / صورة التصنيف مطلوبة");
+    throw ApiError.badRequest(
+      "Category image is required / صورة التصنيف مطلوبة"
+    );
   }
 
-  const image = await uploadToCloudinary(req.file, "categories");
+  const image = await uploadToCloudinary(req.file, "Categories");
 
   const categoryData = {
     ...req.body,
@@ -23,6 +26,16 @@ export const create = asyncWrapper(async (req, res) => {
       secure_url: image.secure_url,
     },
   };
+
+  const existingCategory = await categoryService.findByName(categoryData.name.en) || await categoryService.findByName(categoryData.name.ar);
+
+  if (existingCategory) {
+    // حذف الصورة التي تم رفعها لأن التصنيف لن يتم إنشاؤه
+    await cloudinary.uploader.destroy(image.public_id);
+    throw ApiError.conflict(
+      "Category with the same name already exists / يوجد تصنيف بنفس الاسم بالفعل"
+    );
+  }
 
   const category = await categoryService.create(categoryData);
 
@@ -37,6 +50,16 @@ export const create = asyncWrapper(async (req, res) => {
 /* ----------------------------- GET CATEGORY ----------------------------- */
 export const findById = asyncWrapper(async (req, res) => {
   const category = await categoryService.findById(req.params.id);
+
+  return appResponses.success(
+    res,
+    category,
+    'Category Retrieved Successfully / تم استرجاع التصنيف بنجاح'
+  );
+});
+
+export const findByName = asyncWrapper(async (req, res) => {
+  const category = await categoryService.findByName(req.name);
 
   return appResponses.success(
     res,
@@ -97,7 +120,7 @@ export const update = asyncWrapper(async (req, res) => {
       await cloudinary.uploader.destroy(category.image.public_id);
     }
 
-    const image = await uploadToCloudinary(req.file, "categories");
+    const image = await uploadToCloudinary(req.file, "Categories");
 
     updateData.image = {
       public_id: image.public_id,

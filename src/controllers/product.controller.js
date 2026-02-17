@@ -12,7 +12,7 @@ export const create = asyncWrapper(async (req, res) => {
     for (const file of req.files) {
       const result = await uploadToCloudinary(
         file,
-        "products"
+        "Products"
       );
 
       uploadedImages.push({
@@ -88,7 +88,7 @@ export const update = asyncWrapper(async (req, res) => {
   /* ------------------ ➕ APPEND NEW IMAGES ------------------ */
   if (req.files && req.files.length > 0) {
     for (const file of req.files) {
-      const result = await uploadToCloudinary(file, "products");
+      const result = await uploadToCloudinary(file, "Products");
 
       images.push({
         public_id: result.public_id,

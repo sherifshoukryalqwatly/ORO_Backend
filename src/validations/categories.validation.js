@@ -16,19 +16,6 @@ const localizedString = (min = 2, max = 50, required = true) =>
     ar: required ? Joi.string().trim().min(min).max(max).required() : Joi.string().trim().min(min).max(max).allow('')
   });
 
-/* ----------------------------- CREATE CATEGORY ----------------------------- */
-export const createCategorySchema = {
-  body: Joi.object({
-    name: localizedString(2, 50).required(),
-    image: Joi.object({
-      public_id: Joi.string().required(),
-      secure_url: Joi.string().required()
-    }).required(),
-    parent: objectId.allow(null),
-    isActive: Joi.boolean()
-  })
-};
-
 /* ----------------------------- UPDATE CATEGORY ----------------------------- */
 export const updateCategorySchema = {
   params: Joi.object({

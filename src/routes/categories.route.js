@@ -2,7 +2,6 @@ import express from 'express';
 import * as categoryController from '../controllers/categories.controller.js';
 import validationMiddleware from '../middlewares/validation.middleware.js';
 import { 
-  createCategorySchema, 
   updateCategorySchema, 
   categoryIdSchema, 
   deleteCategoriesSchema,
@@ -28,7 +27,6 @@ router.use(isAuthenticated, authorizeRole('admin'));
 router.post(
   '/',
   upload.single("image"),
-  validationMiddleware(createCategorySchema),
   categoryController.create
 );
 

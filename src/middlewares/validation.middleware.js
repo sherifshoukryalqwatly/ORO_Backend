@@ -18,7 +18,7 @@ const validationMiddleware = (schemas) => {
         );
       }
 
-      req.body = value;
+      Object.assign(req.body, value);   // ✅ بدل reassignment
     }
 
     if (schemas.params) {
@@ -32,7 +32,7 @@ const validationMiddleware = (schemas) => {
         );
       }
 
-      req.params = value;
+      Object.assign(req.params, value); // ✅
     }
 
     if (schemas.query) {
@@ -46,7 +46,7 @@ const validationMiddleware = (schemas) => {
         );
       }
 
-      req.query = value;
+      Object.assign(req.query, value);  // ✅ الحل هنا
     }
 
     next();

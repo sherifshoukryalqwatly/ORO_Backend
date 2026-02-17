@@ -22,6 +22,13 @@ export const findById = async (id) => {
   return category;
 };
 
+export const findByName = async (name) => {
+
+  const category = await categoryRepo.findByName(name);
+
+  return category;
+};
+
 export const findBySlug = async (slug, lang = 'en') => {
   const category = await categoryRepo.findBySlug(slug, lang);
 

@@ -72,8 +72,6 @@ CategorySchema.pre("save", function (next) {
       .trim()
       .replace(/\s+/g, "-");
   }
-
-  next();
 });
 
 // 🔹 Soft delete consistency
@@ -85,8 +83,6 @@ CategorySchema.pre("save", function (next) {
   if (!this.isDeleted) {
     this.deletedAt = null;
   }
-
-  next();
 });
 
 // 🔹 Indexes

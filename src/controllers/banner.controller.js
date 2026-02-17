@@ -26,7 +26,7 @@ export const create = asyncWrapper(async (req, res) => {
     throw new Error("Banner image is required / صورة البنر مطلوبة");
   }
 
-  const image = await uploadToCloudinary(req.file, "banners");
+  const image = await uploadToCloudinary(req.file, "Banners");
 
   const bannerData = {
     title: {
@@ -167,7 +167,7 @@ export const update = asyncWrapper(async (req, res) => {
       await cloudinary.uploader.destroy(banner.image.public_id);
     }
 
-    const image = await uploadToCloudinary(req.file, "banners");
+    const image = await uploadToCloudinary(req.file, "Banners");
 
     updateData.image = {
       public_id: image.public_id,

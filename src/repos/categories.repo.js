@@ -11,6 +11,16 @@ export const findById = async (id) => {
   return await Category.findById(id);
 };
 
+export const findByName = async (categoryName) => {
+  return await Category.findOne({
+    isDeleted: false,
+    $or: [
+      { "name.en": categoryName },
+      { "name.ar": categoryName }
+    ]
+  });
+};
+
 export const findBySlug = async (slug, lang = 'en') => {
   return await Category.findOne({ [`slug.${lang}`]: slug, isDeleted: false });
 };
