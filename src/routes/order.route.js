@@ -13,6 +13,9 @@ const router = express.Router();
 
 router.use(isAuthenticated); // كل العمليات تحتاج تسجيل دخول
 
+/* -------------------- GET ORDERS OF LOGGED-IN USER -------------------- */
+router.get("/me", orderController.findByUser);
+
 /* -------------------- CREATE ORDER -------------------- */
 router.post(
   "/",
@@ -58,7 +61,6 @@ router.delete(
   orderController.removeAll
 );
 
-/* -------------------- GET ORDERS OF LOGGED-IN USER -------------------- */
-router.get("/me", orderController.findByUser);
+
 
 export default router;
