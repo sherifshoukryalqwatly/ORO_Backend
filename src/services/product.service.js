@@ -59,7 +59,15 @@ export const update = async (id, newData) => {
    SOFT DELETE
 ========================= */
 export const remove = async (id) => {
-  await findById(id);
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    throw ApiError.badRequest("Invalid Product Id / رقم المنتج غير صالح");
+  }
+
+  const product = await productRepo.findById(id);
+  if (!product) {
+    throw ApiError.notFound("Product not found / المنتج غير موجود");
+  }
+
   return await productRepo.remove(id);
 };
 
@@ -67,7 +75,14 @@ export const remove = async (id) => {
    HARD DELETE
 ========================= */
 export const hRemove = async (id) => {
-  await findById(id);
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    throw ApiError.badRequest("Invalid Product Id / رقم المنتج غير صالح");
+  }
+
+  const product = await productRepo.findById(id);
+  if (!product) {
+    throw ApiError.notFound("Product not found / المنتج غير موجود");
+  }
   return await productRepo.hRemove(id);
 };
 

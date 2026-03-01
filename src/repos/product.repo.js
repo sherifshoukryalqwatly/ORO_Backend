@@ -45,3 +45,16 @@ export const remove = async (id) => {
 export const hRemove = async (id) => {
   return await Product.findByIdAndDelete(id);
 };
+
+// BULK SOFT DELETE
+export const removeAll = async (ids) => {
+    return await Product.updateMany(
+        { _id: { $in: ids } },
+        { $set: { isDeleted: true } }
+    );
+};
+
+// BULK HARD DELETE
+export const hRemoveAll = async (ids) => {
+    return await Product.deleteMany({ _id: { $in: ids } });
+};

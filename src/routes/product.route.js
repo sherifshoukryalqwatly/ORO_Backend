@@ -31,10 +31,33 @@ router.patch(
   productController.update
 );
 
+// ------------------- SOFT DELETE -------------------
 router.delete(
-  "/:id",
-  authorizeRole("admin"),
-  productController.remove
+    "/:id",
+    authorizeRole("admin"),
+    productController.remove
+);
+
+// ------------------- HARD DELETE -------------------
+router.delete(
+    "/hard/:id",
+    authorizeRole("admin"),
+    productController.hRemove
+);
+
+// ------------------- BULK SOFT DELETE -------------------
+router.delete(
+    "/",
+    authorizeRole("admin"),
+    productController.removeAll
+);
+
+// ------------------- BULK HARD DELETE -------------------
+router.delete(
+    "/hard",
+    authorizeRole("admin"),
+    productController.hRemoveAll
 );
 
 export default router;
+

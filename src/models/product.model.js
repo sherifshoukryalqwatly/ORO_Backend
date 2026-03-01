@@ -34,12 +34,10 @@ const productSchema = new Schema(
       en: {
         type: String,
         unique: [true, "English slug must be unique / الرابط الإنجليزي يجب أن يكون فريدًا"],
-        required: [true, "English slug is required / الرابط الإنجليزي مطلوب"],
       },
       ar: {
         type: String,
         unique: [true, "Arabic slug must be unique / الرابط العربي يجب أن يكون فريدًا"],
-        required: [true, "Arabic slug is required / الرابط العربي مطلوب"],
       },
     },
 
@@ -141,7 +139,6 @@ productSchema.pre("save", function (next) {
     this.slug.ar = this.title.ar.trim().replace(/\s+/g, "-");
   }
 
-  next();
 });
 
 /* ----------------------------- Virtual: Final Price ----------------------------- */
@@ -151,10 +148,10 @@ productSchema.virtual("finalPrice").get(function () {
     : this.price;
 });
 
+productSchema.set("toJSON", { virtuals: true });
+productSchema.set("toObject", { virtuals: true });
+
 /* ----------------------------- Soft Delete Middleware ----------------------------- */
-productSchema.pre(/^find/, function () {
-  this.where({ isDeleted: false });
-});
 
 productSchema.pre("aggregate", function () {
   this.pipeline().unshift({ $match: { isDeleted: false } });
@@ -163,7 +160,6 @@ productSchema.pre("aggregate", function () {
 productSchema.pre("save", function (next) {
   if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
   if (!this.isDeleted) this.deletedAt = null;
-  next();
 });
 
 /* ----------------------------- Indexes ----------------------------- */
