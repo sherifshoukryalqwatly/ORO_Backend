@@ -67,7 +67,6 @@ paymentSchema.pre('save', function (next) {
     this.deletedAt = null;
   }
 
-  next();
 });
 
 /* ----------------------------- Payment Rules ----------------------------- */
@@ -80,7 +79,6 @@ paymentSchema.pre('save', function (next) {
     return next(new Error('Transaction ID is required for online payments'));
   }
 
-  next();
 });
 
 const Payment = model("Payment", paymentSchema);
