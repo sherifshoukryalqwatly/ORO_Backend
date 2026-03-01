@@ -60,7 +60,6 @@ refundSchema.index(
 refundSchema.pre('save', function(next) {
   if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
   if (!this.isDeleted) this.deletedAt = null;
-  next();
 });
 
 /* ----------------------------- Refund Rules ----------------------------- */
@@ -68,17 +67,16 @@ refundSchema.pre('save', async function(next) {
   const Payment = mongoose.model('Payment');
   const payment = await Payment.findById(this.payment);
 
-  if (!payment) return next(new Error('Associated payment not found'));
+  if (!payment) return (new Error('Associated payment not found'));
 
   if (payment.status !== 'completed') {
-    return next(new Error('Refund can only be created for completed payments'));
+    return (new Error('Refund can only be created for completed payments'));
   }
 
   if (this.amount > payment.amount) {
-    return next(new Error('Refund amount cannot exceed payment amount'));
+    return (new Error('Refund amount cannot exceed payment amount'));
   }
 
-  next();
 });
 
 /* ----------------------------- Sync Payment & Order ----------------------------- */

@@ -65,7 +65,15 @@ export const updateStatus = async (id, data) => {
    SOFT DELETE
 ========================= */
 export const remove = async (id) => {
-  await findById(id);
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    throw ApiError.badRequest("Invalid Refund Id / رقم الاسترجاع غير صالح");
+  }
+
+  const refund = await refundRepo.findById(id);
+
+  if (!refund) {
+    throw ApiError.notFound("Refund not found / طلب الاسترجاع غير موجود");
+  }
   return await refundRepo.remove(id);
 };
 
@@ -73,6 +81,15 @@ export const remove = async (id) => {
    HARD DELETE (OPTIONAL)
 ========================= */
 export const hRemove = async (id) => {
-  await findById(id);
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    throw ApiError.badRequest("Invalid Refund Id / رقم الاسترجاع غير صالح");
+  }
+
+  const refund = await refundRepo.findById(id);
+
+  if (!refund) {
+    throw ApiError.notFound("Refund not found / طلب الاسترجاع غير موجود");
+  }
+
   return await refundRepo.hRemove(id);
 };

@@ -47,3 +47,8 @@ export const remove = async (id) => {
   refund.isDeleted = true;
   return await refund.save();
 };
+
+// HARD DELETE
+export const hRemove = async (id) => {
+    return await Refund.findByIdAndDelete(id);
+};

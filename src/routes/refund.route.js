@@ -36,4 +36,10 @@ router.delete(
   refundController.remove
 );
 
+router.delete(
+  "/hard/:id",
+  authorizeRole("admin"),
+  refundController.hRemove
+);
+
 export default router;
