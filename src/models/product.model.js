@@ -23,7 +23,57 @@ function createLocalizedStringSchema(min = 2, max = 500, required = true) {
     { _id: false }
   );
 }
+/* ----------------------------- Variant Schema ----------------------------- */
+const variantSchema = new Schema(
+  {
+    attributes: {
+      size: { type: String, trim: true },
+      color: { type: String, trim: true },
+      material: { type: String, trim: true }
+    },
 
+    sku: {
+      type: String,
+      required: [true, "Variant SKU is required / رمز التخزين التعريفي البديل مطلوب "],
+      unique: true,
+      trim: true
+    },
+
+    price: {
+      type: Number,
+      required: [true, "Price is required / السعر مطلوب "],
+      min: 0
+    },
+
+    stock: {
+      type: Number,
+      required: [true, "Stock is required / المخزون مطلوب "],
+      min: 0
+    },
+
+    sold: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null
+    }
+  },
+  { _id: true }
+);
 /* ----------------------------- Product Schema ----------------------------- */
 const productSchema = new Schema(
   {
@@ -40,7 +90,7 @@ const productSchema = new Schema(
         unique: [true, "Arabic slug must be unique / الرابط العربي يجب أن يكون فريدًا"],
       },
     },
-
+    variants: [variantSchema],
     price: {
       type: Number,
       required: [true, "Price is Required / السعر مطلوب"],
@@ -140,6 +190,16 @@ productSchema.pre("save", function (next) {
   }
 
 });
+/* ----------------------------- Auto Calculate Stock ----------------------------- */
+productSchema.pre("save", function () {
+  if (this.variants && this.variants.length > 0) {
+    const totalStock = this.variants
+      .filter(v => !v.isDeleted)
+      .reduce((acc, v) => acc + v.stock, 0);
+
+    this.stock = totalStock;
+  }
+});
 
 /* ----------------------------- Virtual: Final Price ----------------------------- */
 productSchema.virtual("finalPrice").get(function () {
@@ -157,7 +217,7 @@ productSchema.pre("aggregate", function () {
   this.pipeline().unshift({ $match: { isDeleted: false } });
 });
 
-productSchema.pre("save", function (next) {
+productSchema.pre("save", function () {
   if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
   if (!this.isDeleted) this.deletedAt = null;
 });
