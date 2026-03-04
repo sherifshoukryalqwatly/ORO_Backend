@@ -79,7 +79,9 @@ const productSchema = new Schema(
   {
     title: createLocalizedStringSchema(2, 50),
     description: createLocalizedStringSchema(5, 500),
-
+    /* ----------------------------- SEO ----------------------------- */
+    metaTitle: createLocalizedStringSchema(2, 70, false),
+    metaDescription: createLocalizedStringSchema(10, 160, false),
     slug: {
       en: {
         type: String,
@@ -177,7 +179,11 @@ const productSchema = new Schema(
 );
 
 /* ----------------------------- Slug Generator ----------------------------- */
-productSchema.pre("save", function (next) {
+productSchema.pre("save", function () {
+
+  /* -----------------------------
+     SLUG GENERATION
+  ----------------------------- */
   if (this.isModified("title.en")) {
     this.slug.en = this.title.en
       .toLowerCase()
@@ -186,7 +192,34 @@ productSchema.pre("save", function (next) {
   }
 
   if (this.isModified("title.ar")) {
-    this.slug.ar = this.title.ar.trim().replace(/\s+/g, "-");
+    this.slug.ar = this.title.ar
+      .trim()
+      .replace(/\s+/g, "-");
+  }
+
+  /* -----------------------------
+     AUTO SEO GENERATION
+     Only if missing
+  ----------------------------- */
+
+  if (!this.metaTitle?.en && this.title?.en) {
+    this.metaTitle = this.metaTitle || {};
+    this.metaTitle.en = this.title.en;
+  }
+
+  if (!this.metaDescription?.en && this.description?.en) {
+    this.metaDescription = this.metaDescription || {};
+    this.metaDescription.en = this.description.en.substring(0, 150);
+  }
+
+  if (!this.metaTitle?.ar && this.title?.ar) {
+    this.metaTitle = this.metaTitle || {};
+    this.metaTitle.ar = this.title.ar;
+  }
+
+  if (!this.metaDescription?.ar && this.description?.ar) {
+    this.metaDescription = this.metaDescription || {};
+    this.metaDescription.ar = this.description.ar.substring(0, 150);
   }
 
 });
