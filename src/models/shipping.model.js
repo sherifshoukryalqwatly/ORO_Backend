@@ -52,11 +52,6 @@ shippingSchema.index({ order: 1 });
 shippingSchema.pre("save", function (next) {
   if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
   if (!this.isDeleted) this.deletedAt = null;
-  next();
-});
-
-shippingSchema.pre(/^find/, function () {
-  this.where({ isDeleted: false });
 });
 
 const Shipping = model("Shipping", shippingSchema);
