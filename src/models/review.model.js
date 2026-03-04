@@ -51,11 +51,6 @@ reviewSchema.index(
 reviewSchema.pre("save", function (next) {
   if (this.isDeleted && !this.deletedAt) this.deletedAt = new Date();
   if (!this.isDeleted) this.deletedAt = null;
-  next();
-});
-
-reviewSchema.pre(/^find/, function () {
-  this.where({ isDeleted: false });
 });
 
 /* -------------------- Recalculate Product Ratings -------------------- */
